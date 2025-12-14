@@ -5,19 +5,19 @@ import java.util.regex.Pattern;
 import jakarta.validation.ValidationException;
 
 public class User {
-	private static final Pattern EMAIL_PATTERN = 
-	        Pattern.compile("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$");
-	
-	private Long id;
-	private String username;
-	private String password;
-	private String email;
+    private static final Pattern EMAIL_PATTERN = 
+            Pattern.compile("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$");
+    
+    private Long id;
+    private String username;
+    private String password;
+    private String email;
     private String role; // "USER" hoặc "ADMIN"
 
-	
-	public User(String username, String password, String email, String role) throws ValidationException {
-		this.id = id;
-		validateUsername(username);
+    
+    public User(String username, String password, String email, String role) throws ValidationException {
+        this.id = id;
+        validateUsername(username);
         validatePassword(password);
         validateEmail(email);
         this.role = role != null ? role : "USER";
@@ -27,7 +27,8 @@ public class User {
         this.password = password;
         this.email = email;
     }
-	public Long getId() { return id; }
+    
+    public Long getId() { return id; }
     public String getUsername() { return username; }
     public String getPassword() { return password; }
     public String getEmail() { return email; }
@@ -50,9 +51,9 @@ public class User {
         this.email = email;
     }
 
-    // Private validation methods
+    // Private validation methods - JAVA 8 COMPATIBLE
     private void validateUsername(String username) {
-        if (username == null || username.isBlank())
+        if (username == null || username.trim().isEmpty())
             throw new IllegalArgumentException("Username không được để trống");
         if (username.length() < 3 || username.length() > 32)
             throw new IllegalArgumentException("Username phải từ 3 đến 32 ký tự");
@@ -72,7 +73,7 @@ public class User {
     }
 
     private void validateEmail(String email) {
-        if (email == null || email.isBlank())
+        if (email == null || email.trim().isEmpty())
             throw new IllegalArgumentException("Email không được để trống");
         if (!EMAIL_PATTERN.matcher(email).matches())
             throw new IllegalArgumentException("Email không hợp lệ");

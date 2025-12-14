@@ -1,7 +1,7 @@
 package cosmetic.entities;
 
 public class Category {
-	private Long id;
+    private Long id;
     private String name;
     private String description;
 
@@ -25,9 +25,9 @@ public class Category {
         this.name = name;
     }
 
-    // Validation
+    // Validation - JAVA 8 COMPATIBLE
     private void validateName(String name) {
-        if (name == null || name.isBlank())
+        if (name == null || name.trim().isEmpty())
             throw new IllegalArgumentException("Tên loại sản phẩm không được để trống");
         if (name.length() < 2 || name.length() > 100)
             throw new IllegalArgumentException("Tên loại sản phẩm phải từ 2 đến 100 ký tự");

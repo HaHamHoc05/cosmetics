@@ -2,6 +2,7 @@ package cosmetic.entities;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Order {
@@ -25,7 +26,7 @@ public class Order {
         this.userId = userId;
         this.paymentMethod = paymentMethod;
         this.shippingAddress = shippingAddress;
-        this.items = new ArrayList<>();
+        this.items = new ArrayList<OrderItem>();
         this.status = OrderStatus.PENDING;
         this.totalAmount = 0;
         this.createdAt = LocalDateTime.now();
@@ -38,7 +39,7 @@ public class Order {
                  String cancelReason, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.userId = userId;
-        this.items = items != null ? new ArrayList<>(items) : new ArrayList<>();
+        this.items = items != null ? new ArrayList<OrderItem>(items) : new ArrayList<OrderItem>();
         this.status = status;
         this.paymentMethod = paymentMethod;
         this.totalAmount = totalAmount;
@@ -51,7 +52,7 @@ public class Order {
     // Getters
     public Long getId() { return id; }
     public Long getUserId() { return userId; }
-    public List<OrderItem> getItems() { return new ArrayList<>(items); }
+    public List<OrderItem> getItems() { return new ArrayList<OrderItem>(items); }
     public OrderStatus getStatus() { return status; }
     public String getPaymentMethod() { return paymentMethod; }
     public double getTotalAmount() { return totalAmount; }
@@ -65,22 +66,22 @@ public class Order {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 
-    // Validation
+    // Validation - JAVA 8 COMPATIBLE
     private void validateUserId(Long userId) {
         if (userId == null)
             throw new IllegalArgumentException("User ID không được để trống");
     }
 
     private void validatePaymentMethod(String paymentMethod) {
-        if (paymentMethod == null || paymentMethod.isBlank())
+        if (paymentMethod == null || paymentMethod.trim().isEmpty())
             throw new IllegalArgumentException("Phương thức thanh toán không được để trống");
-        List<String> validMethods = List.of("COD", "BANKING", "MOMO", "VNPAY");
+        List<String> validMethods = Arrays.asList("COD", "BANKING", "MOMO", "VNPAY");
         if (!validMethods.contains(paymentMethod.toUpperCase()))
             throw new IllegalArgumentException("Phương thức thanh toán không hợp lệ");
     }
 
     private void validateShippingAddress(String address) {
-        if (address == null || address.isBlank())
+        if (address == null || address.trim().isEmpty())
             throw new IllegalArgumentException("Địa chỉ giao hàng không được để trống");
         if (address.length() < 10)
             throw new IllegalArgumentException("Địa chỉ giao hàng tối thiểu 10 ký tự");
@@ -111,7 +112,11 @@ public class Order {
     }
 
     private double calculateTotal() {
-        return items.stream().mapToDouble(OrderItem::getSubtotal).sum();
+        double total = 0;
+        for (OrderItem item : items) {
+            total += item.getSubtotal();
+        }
+        return total;
     }
 
     public void updateStatus(OrderStatus newStatus) {
@@ -137,7 +142,7 @@ public class Order {
     public void cancel(String reason) {
         if (!this.status.canCancel())
             throw new IllegalArgumentException("Không thể hủy đơn hàng ở trạng thái: " + status.getDisplayName());
-        if (reason == null || reason.isBlank())
+        if (reason == null || reason.trim().isEmpty())
             throw new IllegalArgumentException("Vui lòng nhập lý do hủy đơn");
         
         this.status = OrderStatus.CANCELED;
@@ -156,7 +161,11 @@ public class Order {
     }
 
     public int getTotalItemCount() {
-        return items.stream().mapToInt(OrderItem::getQuantity).sum();
+        int total = 0;
+        for (OrderItem item : items) {
+            total += item.getQuantity();
+        }
+        return total;
     }
 
     public String getPaymentMethodDisplay() {

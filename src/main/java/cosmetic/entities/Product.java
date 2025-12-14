@@ -84,9 +84,9 @@ public class Product {
         updateStatusByStock();
     }
 
-    // Internal validation
+    // Internal validation - JAVA 8 COMPATIBLE
     private void validateName(String name) {
-        if (name == null || name.isBlank())
+        if (name == null || name.trim().isEmpty())
             throw new IllegalArgumentException("Tên sản phẩm không được để trống");
         if (name.length() < 2 || name.length() > 200)
             throw new IllegalArgumentException("Tên sản phẩm phải từ 2–200 ký tự");
