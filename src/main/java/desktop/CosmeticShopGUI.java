@@ -28,9 +28,9 @@ public class CosmeticShopGUI extends JFrame {
     
     public CosmeticShopGUI() {
         // Initialize repositories
-        productRepo = new InMemoryProductRepository();
-        userRepo = new InMemoryUserRepository();
-        cartRepo = new InMemoryCartRepository();
+        productRepo = new MySQLProductRepository();
+        userRepo = new MySQLUserRepository();
+        cartRepo = new MySQLCartRepository();
         
         initComponents();
         loadProducts();

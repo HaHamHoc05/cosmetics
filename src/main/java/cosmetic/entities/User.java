@@ -32,6 +32,7 @@ public class User {
     public String getUsername() { return username; }
     public String getPassword() { return password; }
     public String getEmail() { return email; }
+    public String getRole() { return role; }
 
 
     public void setId(Long id) { this.id = id; }
@@ -86,5 +87,7 @@ public class User {
 
     public boolean isAdmin() {
         return "ADMIN".equals(this.role);
-    } 
+    }
+
+
 }

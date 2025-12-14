@@ -1,45 +1,58 @@
 package adapters.order.vieworderdetail;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import cosmetic.entities.Order;
-import cosmetic.entities.OrderItem;
 
 public class ViewOrderDetailViewModel {
-	public static class Item {
-        private final Long productId;
-        private final String productName;
-        private final int quantity;
-        private final double unitPrice;
+    private String orderId;
+    private String orderDate;
+    private String status;
+    private String totalAmount;
+    private String paymentMethod;
+    private String shippingAddress;
+    private List<Item> items = new ArrayList<>();
 
-        public Item(OrderItem item){
-            this.productId = item.getProductId();
-            this.productName = item.getProductName();
-            this.quantity = item.getQuantity();
-            this.unitPrice = item.getUnitPrice();
+    // Getters & Setters
+    public String getOrderId() { return orderId; }
+    public void setOrderId(String orderId) { this.orderId = orderId; }
+
+    public String getOrderDate() { return orderDate; }
+    public void setOrderDate(String orderDate) { this.orderDate = orderDate; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    public String getTotalAmount() { return totalAmount; }
+    public void setTotalAmount(String totalAmount) { this.totalAmount = totalAmount; }
+    
+    public String getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+    
+    public String getShippingAddress() { return shippingAddress; }
+    public void setShippingAddress(String shippingAddress) { this.shippingAddress = shippingAddress; }
+
+    public List<Item> getItems() { return items; }
+    public void setItems(List<Item> items) { this.items = items; }
+
+    // Inner class để chứa dữ liệu từng dòng trong bảng
+    public static class Item {
+        public String productName;
+        public String price;
+        public int quantity;
+        public String subtotal;
+
+        public Item(String productName, String price, int quantity, String subtotal) {
+            this.productName = productName;
+            this.price = price;
+            this.quantity = quantity;
+            this.subtotal = subtotal;
         }
-
-        public Long getProductId(){ return productId; }
-        public String getProductName(){ return productName; }
-        public int getQuantity(){ return quantity; }
-        public double getUnitPrice(){ return unitPrice; }
+        
+        // Cần getter để JTable có thể đọc được dữ liệu qua Reflection (nếu dùng thư viện binding)
+        // Hoặc truy cập trực tiếp nếu là public
+        public String getProductName() { return productName; }
+        public String getPrice() { return price; }
+        public int getQuantity() { return quantity; }
+        public String getSubtotal() { return subtotal; }
     }
-
-    private final Long orderId;
-    private final String status;
-    private final double totalAmount;
-    private final List<Item> items;
-
-    public ViewOrderDetailViewModel(Order order){
-        this.orderId = order.getId();
-        this.status = order.getStatus().getDisplayName();
-        this.totalAmount = order.getTotalAmount();
-        this.items = order.getItems().stream().map(Item::new).collect(Collectors.toList());
-    }
-
-    public Long getOrderId(){ return orderId; }
-    public String getStatus(){ return status; }
-    public double getTotalAmount(){ return totalAmount; }
-    public List<Item> getItems(){ return items; }
 }

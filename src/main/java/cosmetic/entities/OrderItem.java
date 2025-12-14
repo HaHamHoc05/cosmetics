@@ -1,56 +1,38 @@
 package cosmetic.entities;
 
 public class OrderItem {
-	private Long id;
-    private Long productId;
-    private String productName;
+    private Product product;
     private int quantity;
-    private double unitPrice;
+    private double price; // Thêm biến này để lưu giá lúc mua
 
     public OrderItem(Product product, int quantity) {
-        validateProduct(product);
-        validateQuantity(quantity);
-        
-        this.productId = product.getId();
-        this.productName = product.getName();
+        if (quantity <= 0) throw new IllegalArgumentException("Số lượng phải > 0");
+        this.product = product;
         this.quantity = quantity;
-        this.unitPrice = product.getPrice();
+        // Mặc định lấy giá hiện tại của sản phẩm
+        this.price = product != null ? product.getPrice() : 0;
     }
 
-    // Constructor từ database
-    public OrderItem(Long id, Long productId, String productName, int quantity, double unitPrice) {
-        this.id = id;
-        this.productId = productId;
-        this.productName = productName;
+    // Constructor dùng khi load từ Database (có giá lịch sử)
+    public OrderItem(Product product, int quantity, double historicalPrice) {
+        this.product = product;
         this.quantity = quantity;
-        this.unitPrice = unitPrice;
+        this.price = historicalPrice;
     }
 
-    // Getters
-    public Long getId() { return id; }
-    public Long getProductId() { return productId; }
-    public String getProductName() { return productName; }
-    public int getQuantity() { return quantity; }
-    public double getUnitPrice() { return unitPrice; }
-
-    // Setters
-    public void setId(Long id) { this.id = id; }
-
-    // Validation
-    private void validateProduct(Product product) {
-        if (product == null)
-            throw new IllegalArgumentException("Sản phẩm không được để trống");
-        if (product.getId() == null)
-            throw new IllegalArgumentException("Sản phẩm chưa được lưu");
-    }
-
-    private void validateQuantity(int quantity) {
-        if (quantity <= 0)
-            throw new IllegalArgumentException("Số lượng phải lớn hơn 0");
-    }
-
-    // Business methods
     public double getSubtotal() {
-        return unitPrice * quantity;
+        // Tính tổng dựa trên giá đã lưu (price), KHÔNG phải product.getPrice()
+        return this.price * this.quantity;
+    }
+
+    // Getters & Setters
+    public Product getProduct() { return product; }
+    public int getQuantity() { return quantity; }
+    public double getPrice() { return price; }
+    public void setPrice(double price) { this.price = price; }
+    
+    // Logic tăng giảm số lượng giữ nguyên...
+    public void increaseQuantity(int amount) {
+        this.quantity += amount;
     }
 }
