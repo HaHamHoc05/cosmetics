@@ -16,7 +16,6 @@ public class User {
 
     
     public User(String username, String password, String email, String role) throws ValidationException {
-        this.id = id;
         validateUsername(username);
         validatePassword(password);
         validateEmail(email);

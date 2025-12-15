@@ -9,17 +9,54 @@ public class DatabaseConnection {
     private static final String USER = "root";
     private static final String PASSWORD = "160603";
 
-    // Khối tĩnh để nạp Driver (chỉ chạy 1 lần)
+    // ThreadLocal giúp giữ Connection riêng biệt cho từng luồng (User) đang chạy
+    private static final ThreadLocal<Connection> connectionHolder = new ThreadLocal<>();
+
     static {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Không tìm thấy Driver MySQL! Hãy kiểm tra file pom.xml");
+            throw new RuntimeException("Không tìm thấy Driver MySQL!", e);
         }
     }
 
+    // 1. Lấy kết nối: Nếu đang trong Transaction thì trả về kết nối chung, nếu không thì tạo mới
     public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(URL, USER, PASSWORD);
+        Connection conn = connectionHolder.get();
+        if (conn == null || conn.isClosed()) {
+            return DriverManager.getConnection(URL, USER, PASSWORD);
+        }
+        return conn;
+    }
+
+    // 2. Bắt đầu Transaction
+    public static void startTransaction() throws SQLException {
+        Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+        conn.setAutoCommit(false); // Tắt tự động lưu để quản lý thủ công
+        connectionHolder.set(conn);
+    }
+
+    // 3. Commit (Lưu thành công)
+    public static void commit() throws SQLException {
+        Connection conn = connectionHolder.get();
+        if (conn != null) {
+            conn.commit();
+            conn.close();
+            connectionHolder.remove(); // Xóa khỏi ThreadLocal
+        }
+    }
+
+    // 4. Rollback (Hoàn tác khi lỗi)
+    public static void rollback() {
+        try {
+            Connection conn = connectionHolder.get();
+            if (conn != null) {
+                conn.rollback();
+                conn.close();
+                connectionHolder.remove();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

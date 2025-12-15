@@ -11,4 +11,6 @@ public interface ProductRepository {
     void update(Product product);
     void delete(Long id);
 	List<Product> search(String keyword, Long categoryId);
+	
+	boolean reduceStockAtomic(Long productId, int quantity);
 }
