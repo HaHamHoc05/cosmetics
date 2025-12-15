@@ -2,79 +2,76 @@ package cosmetic.entities;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-
-import jakarta.validation.ValidationException;
 
 public class Cart {
-	private Long userId;
-	private List<CartItem>items;
-	
-	public Cart(Long userId) {
-		if (userId == null) throw new IllegalArgumentException("UserId không được null");
-		this.userId = userId;
-		this.items = new ArrayList<>();
-	}
-	
-	public Long getUserId() {
-		return userId;
-	}
-	public List<CartItem>getItems(){
-		return items;
-	}
-	
-	//br
-	public void addItem(Product product, int quantity) throws ValidationException {
-        CartItem existingItem = findItemByProductId(product.getId());
+    private Long userId; 
+    private List<CartItem> items;
+
+    public Cart() {
+        this.items = new ArrayList<>();
+    }
+
+    public Cart(Long userId) {
+        this.userId = userId;
+        this.items = new ArrayList<>();
+    }
+
+    // BR
+
+    public void addItem(Product product, int quantity) {
+        if (quantity <= 0) return;
+
+        // Check tồn kho
+        int currentQty = 0;
+        CartItem existing = findItem(product.getId());
+        if (existing != null) currentQty = existing.getQuantity();
         
-        if (existingItem != null) {
-            existingItem.increaseQuantity(quantity);
+        // Ném exception nếu không đủ hàng
+        product.checkAvailability(currentQty + quantity);
+
+        //  Thêm vào list
+        if (existing != null) {
+            existing.increaseQuantity(quantity);
         } else {
-            if (items.size() >= 50)
-                throw new ValidationException("Giỏ hàng đã đạt tối đa 50 loại sản phẩm");
+            if (items.size() >= 20) throw new RuntimeException("Giỏ hàng đã đầy (tối đa 20 loại)");
             items.add(new CartItem(product, quantity));
         }
     }
 
-    public void updateItemQuantity(Long productId, int quantity) throws ValidationException {
-        CartItem item = findItemByProductId(productId);
-        if (item == null)
-            throw new ValidationException("Sản phẩm không có trong giỏ hàng");
-        
-        if (quantity <= 0) {
-            removeItem(productId);
+    public void updateItemQuantity(Long productId, int newQuantity) {
+        CartItem item = findItem(productId);
+        if (item == null) return;
+
+        if (newQuantity <= 0) {
+            removeItem(productId); 
         } else {
-            item.setQuantity(quantity);
+            // Nếu tăng số lượng, phải check kho
+            if (newQuantity > item.getQuantity()) {
+                item.getProduct().checkAvailability(newQuantity);
+            }
+            item.setQuantity(newQuantity);
         }
     }
 
-    public void removeItem(Long productId) throws ValidationException {
-        boolean removed = items.removeIf(item -> item.isSameProduct(productId));
-        if (!removed)
-            throw new ValidationException("Sản phẩm không có trong giỏ hàng");
+    public void removeItem(Long productId) {
+        items.removeIf(i -> i.getProduct().getId().equals(productId));
     }
 
-    public CartItem findItemByProductId(Long productId) {
-        return items.stream()
-                .filter(item -> item.isSameProduct(productId))
-                .findFirst()
-                .orElse(null);
-    }
-
-    public double getTotal() {
+    public double getTotalAmount() {
         return items.stream().mapToDouble(CartItem::getSubtotal).sum();
     }
 
-    public int getTotalItems() {
-        return items.stream().mapToInt(CartItem::getQuantity).sum();
+    public void clear() { items.clear(); }
+    public boolean isEmpty() { return items.isEmpty(); }
+    
+    private CartItem findItem(Long productId) {
+        return items.stream()
+            .filter(i -> i.getProduct().getId().equals(productId))
+            .findFirst().orElse(null);
     }
 
-    public boolean isEmpty() {
-        return items.isEmpty();
-    }
 
-    public void clear() {
-        items.clear();
-    }
+    public List<CartItem> getItems() { return new ArrayList<>(items); }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
 }

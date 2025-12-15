@@ -1,13 +1,10 @@
 package cosmetic.repository;
 
+import cosmetic.entities.Category;
 import java.util.List;
 
-import cosmetic.entities.Category;
-
 public interface CategoryRepository {
-	Category findById(Long id);
     List<Category> findAll();
+    Category findById(Long id);
     void save(Category category);
-    void update(Category category);
-    void delete(Long id);
 }

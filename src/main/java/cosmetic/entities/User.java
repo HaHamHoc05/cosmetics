@@ -1,92 +1,58 @@
 package cosmetic.entities;
 
-import java.util.regex.Pattern;
-
-import jakarta.validation.ValidationException;
 
 public class User {
-    private static final Pattern EMAIL_PATTERN = 
-            Pattern.compile("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$");
-    
     private Long id;
     private String username;
-    private String password;
     private String email;
-    private String role; // "USER" hoặc "ADMIN"
+    private String password; 
+    private String fullName;
+    private String phone;
+    private String address;
+    private Role role;
 
-    
-    public User(String username, String password, String email, String role) throws ValidationException {
+    public User(Long id, String username, String email, String password, String fullName, Role role) {
         validateUsername(username);
-        validatePassword(password);
         validateEmail(email);
-        this.role = role != null ? role : "USER";
-
-        
+        this.id = id;
         this.username = username;
-        this.password = password;
         this.email = email;
-    }
-    
-    public Long getId() { return id; }
-    public String getUsername() { return username; }
-    public String getPassword() { return password; }
-    public String getEmail() { return email; }
-    public String getRole() { return role; }
-
-
-    public void setId(Long id) { this.id = id; }
-    
-    public void setUsername(String username) throws ValidationException {
-        validateUsername(username);
-        this.username = username;
-    }
-
-    public void setPassword(String password) throws ValidationException {
-        validatePassword(password);
         this.password = password;
+        this.fullName = fullName;
+        this.role = role != null ? role : Role.CUSTOMER;
     }
 
-    public void setEmail(String email) throws ValidationException {
-        validateEmail(email);
-        this.email = email;
-    }
+    // BR
 
-    // Private validation methods - JAVA 8 COMPATIBLE
     private void validateUsername(String username) {
-        if (username == null || username.trim().isEmpty())
-            throw new IllegalArgumentException("Username không được để trống");
-        if (username.length() < 3 || username.length() > 32)
-            throw new IllegalArgumentException("Username phải từ 3 đến 32 ký tự");
-        if (!username.matches("^[A-Za-z0-9._-]+$"))
-            throw new IllegalArgumentException("Username chỉ được gồm chữ, số và . _ -");
-    }
-
-    private void validatePassword(String password) {
-        if (password == null || password.length() < 8)
-            throw new IllegalArgumentException("Mật khẩu phải từ 8 ký tự trở lên");
-        boolean hasUpper = password.chars().anyMatch(Character::isUpperCase);
-        boolean hasLower = password.chars().anyMatch(Character::isLowerCase);
-        boolean hasDigit = password.chars().anyMatch(Character::isDigit);
-        boolean hasSpecial = password.matches(".*[^A-Za-z0-9].*");
-        if (!(hasUpper && hasLower && hasDigit && hasSpecial))
-            throw new IllegalArgumentException("Mật khẩu cần có chữ hoa, chữ thường, số và ký tự đặc biệt");
+        if (username == null || username.trim().isEmpty()) 
+            throw new RuntimeException("Username không được để trống");
+        if (username.contains(" ")) 
+            throw new RuntimeException("Username không được chứa khoảng trắng");
     }
 
     private void validateEmail(String email) {
-        if (email == null || email.trim().isEmpty())
-            throw new IllegalArgumentException("Email không được để trống");
-        if (!EMAIL_PATTERN.matcher(email).matches())
-            throw new IllegalArgumentException("Email không hợp lệ");
+        if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) 
+            throw new RuntimeException("Email không hợp lệ");
     }
 
-    // Business methods
-    public boolean checkPassword(String rawPassword) {
-        return this.password.equals(rawPassword);
+    //So khớp mật khẩu 
+     
+    public boolean matchPassword(String rawPassword, PasswordEncoder encoder) {
+        return encoder.matches(rawPassword, this.password);
     }
-
-    public boolean isAdmin() {
-        return "ADMIN".equals(this.role);
-    }
+    
+    public boolean isAdmin() { return this.role == Role.ADMIN; }
 
 
+    public Long getId() { return id; }
+    public String getUsername() { return username; }
+    public String getEmail() { return email; }
+    public String getPassword() { return password; }
+    public String getFullName() { return fullName; }
+    public Role getRole() { return role; }
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
 }
