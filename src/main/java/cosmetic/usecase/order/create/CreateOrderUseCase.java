@@ -4,45 +4,66 @@ import cosmetic.entities.Cart;
 import cosmetic.entities.Order;
 import cosmetic.entities.User;
 import cosmetic.repository.OrderRepository;
+import cosmetic.usecase.OutputBoundary;
 import cosmetic.usecase.UseCase;
 
 public class CreateOrderUseCase implements UseCase<CreateOrderReq, CreateOrderRes> {
 
     private final OrderRepository repository;
+    
+    private final OutputBoundary< CreateOrderRes> outputBoundary;
 
-    // Constructor nhận Repository (Dependency Injection)
-    public CreateOrderUseCase(OrderRepository repository) {
+    // Constructor
+    public CreateOrderUseCase(OrderRepository repository, OutputBoundary< CreateOrderRes> outputBoundary) {
         this.repository = repository;
+        this.outputBoundary = outputBoundary;
     }
 
     @Override
-    public CreateOrderRes execute(CreateOrderReq req) {
+    public void execute(CreateOrderReq req) {
         CreateOrderRes res = new CreateOrderRes();
 
         try {
-            // 1. Lấy dữ liệu từ DB thông qua Repository
-            Cart cart = repository.findCartByUserId(req.userId);
-            User user = repository.findUserById(req.userId);
+            // INPUT VALIDATION 
+        	if (req.userId == null) {
+                throw new IllegalArgumentException("User ID không được để trống.");
+            }
+            if (req.address == null || req.address.trim().isEmpty()) {
+                throw new IllegalArgumentException("Địa chỉ giao hàng không được để trống.");
+            }
+            if (req.phone == null || !req.phone.matches("\\d{10}")) {
+                throw new IllegalArgumentException("Số điện thoại không hợp lệ.");
+            }
 
-            // 2. Gọi Logic nghiệp vụ (Business Rules) nằm trong Entity Order
-            // Hàm này của bạn đã lo việc trừ tồn kho và tính tiền rồi
+            // USER VALIDATION 
+            User user = repository.findUserById(req.userId);
+            if (user == null) {
+                throw new RuntimeException("Người dùng không tồn tại.");
+            }
+
+            //  CART VALIDATION 
+            Cart cart = repository.findCartByUserId(req.userId);
+            if (cart == null || cart.getItems().isEmpty()) {
+                throw new RuntimeException("Giỏ hàng trống, vui lòng chọn sản phẩm.");
+            }
+
+         // Gọi Entity xử lý nghiệp vụ lõi
             Order newOrder = Order.createFromCart(cart, user, req.address, req.phone, req.paymentMethod);
 
-            // 3. Lưu đơn hàng và Xóa giỏ hàng cũ
             repository.save(newOrder);
             repository.deleteCart(req.userId);
 
-            // 4. Báo cáo thành công
             res.success = true;
             res.newOrderId = newOrder.getId();
             res.message = "Đặt hàng thành công!";
 
         } catch (Exception e) {
-            // 5. Xử lý lỗi (Ví dụ: Giỏ hàng rỗng, Hết hàng...)
             res.success = false;
-            res.message = "Lỗi đặt hàng: " + e.getMessage();
+            res.message = e.getMessage();
         }
 
-        return res;
+        if (outputBoundary != null) {
+            outputBoundary.present(res);
+        }
     }
 }
