@@ -31,7 +31,7 @@ public class CreateOrderUseCase implements UseCase<CreateOrderReq, CreateOrderRe
             if (req.address == null || req.address.trim().isEmpty()) {
                 throw new IllegalArgumentException("Địa chỉ giao hàng không được để trống.");
             }
-            if (req.phone == null || !req.phone.matches("\\d{10}")) {
+            if (req.phone == null || !req.phone.matches("0[35789][0-9]{8}")) {
                 throw new IllegalArgumentException("Số điện thoại không hợp lệ.");
             }
 
