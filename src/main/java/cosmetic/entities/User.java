@@ -1,58 +1,34 @@
 package cosmetic.entities;
 
+import java.time.LocalDateTime;
 
 public class User {
     private Long id;
-    private String username;
-    private String email;
-    private String password; 
     private String fullName;
-    private String phone;
-    private String address;
-    private Role role;
+    private String email;
+    private String password;
+    private String phone;    // Mới thêm
+    private String address;  // Mới thêm
+    private int roleId;
+    private LocalDateTime createdAt;
 
-    public User(Long id, String username, String email, String password, String fullName, Role role) {
-        validateUsername(username);
-        validateEmail(email);
-        this.id = id;
-        this.username = username;
-        this.email = email;
-        this.password = password;
-        this.fullName = fullName;
-        this.role = role != null ? role : Role.CUSTOMER;
-    }
+    public User() {}
 
-    // BR
-
-    private void validateUsername(String username) {
-        if (username == null || username.trim().isEmpty()) 
-            throw new RuntimeException("Username không được để trống");
-        if (username.contains(" ")) 
-            throw new RuntimeException("Username không được chứa khoảng trắng");
-    }
-
-    private void validateEmail(String email) {
-        if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) 
-            throw new RuntimeException("Email không hợp lệ");
-    }
-
-    //So khớp mật khẩu 
-     
-    public boolean matchPassword(String rawPassword, PasswordEncoder encoder) {
-        return encoder.matches(rawPassword, this.password);
-    }
-    
-    public boolean isAdmin() { return this.role == Role.ADMIN; }
-
-
+    // Getters & Setters
     public Long getId() { return id; }
-    public String getUsername() { return username; }
-    public String getEmail() { return email; }
-    public String getPassword() { return password; }
+    public void setId(Long id) { this.id = id; }
     public String getFullName() { return fullName; }
-    public Role getRole() { return role; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
+    public int getRoleId() { return roleId; }
+    public void setRoleId(int roleId) { this.roleId = roleId; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

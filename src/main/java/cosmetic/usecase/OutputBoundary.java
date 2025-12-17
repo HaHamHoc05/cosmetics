@@ -1,5 +1,5 @@
-package cosmetic;
+package cosmetic.usecase;
 
 public interface OutputBoundary<Res extends ResponseData> {
-    void present(Res response);
+	void present(Res response);
 }

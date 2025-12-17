@@ -7,96 +7,71 @@ import java.util.List;
 public class Order {
     private Long id;
     private Long userId;
-    private List<OrderItem> items;
     private double totalAmount;
-    private OrderStatus status;
-    private LocalDateTime createdAt;
-    
+
+    private OrderStatus status; 
     private String shippingAddress;
     private String phone;
     private String paymentMethod;
+    private LocalDateTime createdAt;
+    
+
+    private List<OrderItem> items = new ArrayList<>();
 
     public Order() {
-        this.items = new ArrayList<>();
+        this.createdAt = LocalDateTime.now();
+        this.status = OrderStatus.PENDING; 
     }
 
-    // BR
-
-    //Tạo Order từ Cart.
-    //Thực hiện logic trừ tồn kho và snapshot giá.
-
+    /**
+     * LOGIC NGHIỆP VỤ: Tạo Order từ Cart
+     * - Chuyển đổi item trong giỏ thành item trong đơn hàng.
+     * - Snapshot (chụp lại) giá bán tại thời điểm mua.
+     * - Tính tổng tiền.
+     */
     public static Order createFromCart(Cart cart, User user, String address, String phone, String paymentMethod) {
-        if (cart == null || cart.isEmpty()) {
-            throw new RuntimeException("Giỏ hàng trống, không thể thanh toán");
-        }
-        if (user == null) {
-            throw new RuntimeException("Vui lòng đăng nhập để thanh toán");
+        if (cart == null || cart.getItems().isEmpty()) {
+            throw new RuntimeException("Không thể tạo đơn hàng từ giỏ hàng trống!");
         }
 
         Order order = new Order();
-        order.userId = user.getId();
-        order.status = OrderStatus.PENDING;
-        order.createdAt = LocalDateTime.now();
-        order.shippingAddress = address;
-        order.phone = phone;
-        order.paymentMethod = paymentMethod;
-
-        for (CartItem ci : cart.getItems()) {
-            //  Trừ tồn kho 
-            ci.getProduct().reduceStock(ci.getQuantity());
-
-            // Tạo OrderItem lưu giá hiện tại
-            order.items.add(new OrderItem(ci.getProduct(), ci.getQuantity()));
+        order.setUserId(user.getId());
+        order.setShippingAddress(address);
+        order.setPhone(phone);
+        order.setPaymentMethod(paymentMethod);
+        
+        double total = 0;
+        for (CartItem cartItem : cart.getItems()) {
+            OrderItem orderItem = new OrderItem();
+            orderItem.setProductId(cartItem.getProductId());
+            orderItem.setQuantity(cartItem.getQuantity());
+            orderItem.setPrice(cartItem.getPrice()); // Lưu giá tại thời điểm mua
+            
+            order.getItems().add(orderItem);
+            total += cartItem.getPrice() * cartItem.getQuantity();
         }
-
-        order.calculateTotal();
+        order.setTotalAmount(total);
+        
         return order;
     }
 
-    private void calculateTotal() {
-        this.totalAmount = items.stream().mapToDouble(OrderItem::getSubtotal).sum();
-    }
-
-    // logic trạng thái
-    public void confirm() {
-        if (this.status != OrderStatus.PENDING) throw new RuntimeException("Chỉ đơn hàng mới mới được xác nhận");
-        this.status = OrderStatus.CONFIRMED;
-    }
-
-    public void ship() {
-        if (this.status != OrderStatus.CONFIRMED) throw new RuntimeException("Đơn hàng chưa xác nhận");
-        this.status = OrderStatus.SHIPPING;
-    }
-    
-    public void complete() {
-        if (this.status != OrderStatus.SHIPPING) throw new RuntimeException("Đơn hàng chưa được giao");
-        this.status = OrderStatus.DELIVERED;
-    }
-
-    public void cancel() {
-        if (this.status == OrderStatus.SHIPPING || this.status == OrderStatus.DELIVERED) {
-            throw new RuntimeException("Không thể hủy đơn hàng đã/đang giao");
-        }
-        this.status = OrderStatus.CANCELLED;
-        
-    }
-
-
+    // Getters & Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public Long getUserId() { return userId; }
-    public List<OrderItem> getItems() { return items; }
-    public OrderStatus getStatus() { return status; }
-    public double getTotalAmount() { return totalAmount; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public String getShippingAddress() { return shippingAddress; }
-    public String getPaymentMethod() { return paymentMethod; }
     public void setUserId(Long userId) { this.userId = userId; }
-    public void setStatus(OrderStatus status) { this.status = status; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public double getTotalAmount() { return totalAmount; }
     public void setTotalAmount(double totalAmount) { this.totalAmount = totalAmount; }
-    public void setItems(List<OrderItem> items) { this.items = items; }
+    public OrderStatus getStatus() { return status; }
+    public void setStatus(OrderStatus status) { this.status = status; }
+    public String getShippingAddress() { return shippingAddress; }
     public void setShippingAddress(String shippingAddress) { this.shippingAddress = shippingAddress; }
+    public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
+    public String getPaymentMethod() { return paymentMethod; }
     public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public List<OrderItem> getItems() { return items; }
+    public void setItems(List<OrderItem> items) { this.items = items; }
 }

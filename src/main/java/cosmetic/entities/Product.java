@@ -1,65 +1,34 @@
 package cosmetic.entities;
 
+import java.time.LocalDateTime;
+
 public class Product {
-    private Long id;
-    private String name;
-    private double price;
+    private int id;
+    private int categoryId;
+    private String productName;
     private String description;
-    private String image;
-    private int stockQuantity;
-    private Long categoryId;
-    private ProductStatus status;
+    private double price;
+    private int stock;       // Mới thêm
+    private String imageUrl; // Mới thêm
+    private LocalDateTime createdAt;
 
-    public Product(Long id, String name, double price, int stockQuantity, Long categoryId) {
-        validateData(name, price, stockQuantity);
-        this.id = id;
-        this.name = name;
-        this.price = price;
-        this.stockQuantity = stockQuantity;
-        this.categoryId = categoryId;
-        this.status = (stockQuantity > 0) ? ProductStatus.ACTIVE : ProductStatus.OUT_OF_STOCK;
-    }
- // BR
-    private void validateData(String name, double price, int stock) {
-        if (name == null || name.trim().isEmpty()) 
-            throw new RuntimeException("Tên sản phẩm không được để trống");
-        if (price < 0) 
-            throw new RuntimeException("Giá sản phẩm không được âm");
-        if (stock < 0)
-            throw new RuntimeException("Số lượng tồn kho không được âm");
-    }
+    public Product() {}
 
-    //Kiểm tra xem có đủ hàng để bán không.
-
-    public void checkAvailability(int quantityRequested) {
-        if (this.status == ProductStatus.OUT_OF_STOCK || this.stockQuantity == 0) {
-            throw new RuntimeException("Sản phẩm '" + this.name + "' đã hết hàng!");
-        }
-        if (this.stockQuantity < quantityRequested) {
-            throw new RuntimeException("Sản phẩm '" + this.name + "' chỉ còn lại " + this.stockQuantity + " sản phẩm.");
-        }
-    }
-
-    //Trừ kho 
-
-    public void reduceStock(int quantitySold) {
-        checkAvailability(quantitySold); // Check lại 
-        this.stockQuantity -= quantitySold;
-        
-        if (this.stockQuantity == 0) {
-            this.status = ProductStatus.OUT_OF_STOCK;
-        }
-    }
-
-    public Long getId() { return id; }
-    public String getName() { return name; }
-    public double getPrice() { return price; }
+    // Getters & Setters
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
+    public int getCategoryId() { return categoryId; }
+    public void setCategoryId(int categoryId) { this.categoryId = categoryId; }
+    public String getProductName() { return productName; }
+    public void setProductName(String productName) { this.productName = productName; }
     public String getDescription() { return description; }
-    public String getImage() { return image; }
-    public int getStockQuantity() { return stockQuantity; }
-    public ProductStatus getStatus() { return status; }
-    public Long getCategoryId() { return categoryId; }
-    
     public void setDescription(String description) { this.description = description; }
-    public void setImage(String image) { this.image = image; }
+    public double getPrice() { return price; }
+    public void setPrice(double price) { this.price = price; }
+    public int getStock() { return stock; }
+    public void setStock(int stock) { this.stock = stock; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

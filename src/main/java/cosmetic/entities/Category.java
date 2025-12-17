@@ -1,20 +1,16 @@
 package cosmetic.entities;
 
 public class Category {
-    private Long id;
-    private String name;
+    private int id;
+    private String categoryName;
     private String description;
 
-    public Category(Long id, String name, String description) {
-        if (name == null || name.trim().isEmpty())
-            throw new RuntimeException("Tên danh mục không được để trống");
-            
-        this.id = id;
-        this.name = name;
-        this.description = description;
-    }
+    public Category() {}
 
-    public Long getId() { return id; }
-    public String getName() { return name; }
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
+    public String getCategoryName() { return categoryName; }
+    public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
     public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 }

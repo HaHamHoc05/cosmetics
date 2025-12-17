@@ -1,26 +1,23 @@
 package cosmetic.entities;
 
-
 public class OrderItem {
-    private Long productId;
-    private String productName;
-    private double priceAtPurchase; // Giá lúc mua
+    private int id;
+    private Long orderId;
+    private int productId;
     private int quantity;
+    private double price; 
 
-    public OrderItem(Product product, int quantity) {
-        this.productId = product.getId();
-        this.productName = product.getName();
-        this.priceAtPurchase = product.getPrice();
-        this.quantity = quantity;
-    }
+    public OrderItem() {}
 
-    public double getSubtotal() {
-        return priceAtPurchase * quantity;
-    }
-    
-
-    public Long getProductId() { return productId; }
-    public String getProductName() { return productName; }
-    public double getPriceAtPurchase() { return priceAtPurchase; }
+    // Getters & Setters
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
+    public Long getOrderId() { return orderId; }
+    public void setOrderId(Long orderId) { this.orderId = orderId; }
+    public int getProductId() { return productId; }
+    public void setProductId(int productId) { this.productId = productId; }
     public int getQuantity() { return quantity; }
+    public void setQuantity(int quantity) { this.quantity = quantity; }
+    public double getPrice() { return price; }
+    public void setPrice(double price) { this.price = price; }
 }
