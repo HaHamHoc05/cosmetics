@@ -31,4 +31,5 @@ public class Product {
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    
 }
