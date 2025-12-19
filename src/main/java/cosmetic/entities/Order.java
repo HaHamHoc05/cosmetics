@@ -54,6 +54,19 @@ public class Order {
         
         return order;
     }
+   
+   public void updateStatus(OrderStatus status) {
+	   if (this.status == OrderStatus.CANCELLED) {
+		   throw new RuntimeException("Đơn hàng đã hủy, không thể cập nhật trạng thái khác.");
+		   
+	   }
+	   if (this.status == OrderStatus.DELIVERED && status == OrderStatus.CANCELLED) {
+		   throw new RuntimeException("Đơn hàng giao thành công, không thể hủy.");
+	   }
+	   
+	   this.status = status;
+   }
+   
 
     // Getters & Setters
     public Long getId() { return id; }
