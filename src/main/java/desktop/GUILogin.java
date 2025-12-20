@@ -1,126 +1,142 @@
 package desktop;
 
-import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPasswordField;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
-
+import javax.swing.*;
+import java.awt.*;
 import adapters.Subscriber;
-import adapters.user.login.LoginController;
-import adapters.user.login.LoginPresenter;
-import adapters.user.login.LoginViewModel;
-import cosmetic.repository.MySQLUserRepository;
-import cosmetic.repository.UserRepository;
+import adapters.user.login.*;
+import adapters.user.register.*;
+import cosmetic.repository.*;
 import cosmetic.usecase.user.login.LoginUseCase;
+import cosmetic.usecase.user.register.RegisterUseCase;
 
 public class GUILogin extends JFrame implements Subscriber {
-
-    private JTextField txtUser = new JTextField("user1");
+    private JTextField txtUser = new JTextField("admin"); // Test admin
     private JPasswordField txtPass = new JPasswordField("123456");
     private JButton btnLogin = new JButton("Đăng Nhập");
+    private JButton btnRegister = new JButton("Đăng Ký");
 
-    // Giữ Controller và ViewModel làm thuộc tính của class
     private final LoginController controller;
     private final LoginViewModel viewModel;
 
-    // Constructor nhận vào Controller và ViewModel (Dependency Injection)
     public GUILogin(LoginController controller, LoginViewModel viewModel) {
         this.controller = controller;
         this.viewModel = viewModel;
-        
-        // Đăng ký Subscriber
         this.viewModel.addSubscriber(this);
-
         setupUI();
     }
 
     private void setupUI() {
-        setTitle("Đăng Nhập");
-        setSize(300, 150);
+        setTitle("Login System");
+        setSize(350, 200);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        setLayout(new GridLayout(3, 2, 5, 5));
+        setLayout(new GridLayout(4, 2, 10, 10));
 
         add(new JLabel("Username:")); add(txtUser);
         add(new JLabel("Password:")); add(txtPass);
-        add(new JLabel("")); add(btnLogin);
+        add(btnRegister); add(btnLogin);
 
-        btnLogin.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String u = txtUser.getText();
-                String p = new String(txtPass.getPassword());
-                controller.execute(u, p);
-            }
-        });
+        btnLogin.addActionListener(e -> controller.execute(txtUser.getText(), new String(txtPass.getPassword())));
+        
+        btnRegister.addActionListener(e -> openRegisterScreen());
+    }
+
+    private void openRegisterScreen() {
+        try {
+            UserRepository repo = new MySQLUserRepository();
+            RegisterViewModel vm = new RegisterViewModel();
+            RegisterPresenter pres = new RegisterPresenter(vm);
+            RegisterUseCase uc = new RegisterUseCase(repo, pres);
+            RegisterController ctrl = new RegisterController(uc);
+            
+            // Bạn cần tạo file GUIRegister (đã cung cấp ở câu trả lời trước)
+            new GUIRegister(ctrl, vm, this).setVisible(true);
+            this.setVisible(false);
+        } catch(Exception ex) { ex.printStackTrace(); }
     }
 
     @Override
     public void update() {
         if (viewModel.isSuccess) {
-            JOptionPane.showMessageDialog(this, "Đăng nhập thành công! UserID: " + viewModel.userId);
-            
-            // --- CHUYỂN MÀN HÌNH ---
-            // Tại đây, bạn sẽ khởi tạo màn hình tiếp theo (GUIProductList) 
-            // và truyền dependencies cho nó tương tự như cách làm ở hàm main bên dưới.
-            
-            this.dispose(); // Đóng màn hình Login
-            openProductListScreen(viewModel.userId); // Hàm mở màn hình danh sách
-            
+            JOptionPane.showMessageDialog(this, "Xin chào " + viewModel.role + " (ID: " + viewModel.userId + ")");
+            this.dispose();
+            openMainApp(viewModel.userId, viewModel.role);
         } else {
             JOptionPane.showMessageDialog(this, "Lỗi: " + viewModel.message);
         }
     }
 
-    // Hàm main: Nơi khởi tạo mọi thứ theo đúng mẫu giáo viên
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            // 1. Khởi tạo Repository (Database)
-            UserRepository userRepo = new MySQLUserRepository();
-
-            // 2. Khởi tạo ViewModel
-            LoginViewModel viewModel = new LoginViewModel();
-
-            // 3. Khởi tạo Presenter (kết nối với ViewModel)
-            LoginPresenter presenter = new LoginPresenter(viewModel);
-
-            // 4. Khởi tạo UseCase (kết nối Repo và Presenter)
-            LoginUseCase useCase = new LoginUseCase(userRepo, presenter);
-
-            // 5. Khởi tạo Controller (kết nối UseCase)
-            LoginController controller = new LoginController(useCase);
-
-            // 6. Khởi tạo GUI và chạy
-            GUILogin screen = new GUILogin(controller, viewModel);
-            screen.setVisible(true);
+            try {
+                // Init Login Dependencies
+                UserRepository repo = new MySQLUserRepository();
+                LoginViewModel vm = new LoginViewModel();
+                LoginPresenter pres = new LoginPresenter(vm);
+                LoginUseCase uc = new LoginUseCase(repo, pres);
+                LoginController ctrl = new LoginController(uc);
+                new GUILogin(ctrl, vm).setVisible(true);
+            } catch (Exception e) { e.printStackTrace(); }
         });
     }
 
-    // Helper để mở màn hình sau khi login thành công
-    private void openProductListScreen(Long userId) {
-        // Bạn sẽ cần copy đoạn khởi tạo (Repo -> VM -> Presenter -> UseCase -> Controller) 
-        // của màn hình ProductList vào đây hoặc tạo một class Main riêng để quản lý luồng này.
-        // Để đơn giản theo bài mẫu, ta có thể khởi tạo trực tiếp ở đây:
-        
-        // Ví dụ (Cần import các class tương ứng):
-        /*
-        ProductRepository prodRepo = new MySQLProductRepository();
-        CartRepository cartRepo = new MySQLCartRepository();
-        
-        // ... Khởi tạo ViewModel, Presenter, Controller cho ProductList ...
-        
-        GUIProductList listScreen = new GUIProductList(prodListController, prodListViewModel, userId);
-        listScreen.setVisible(true);
-        */
-        
-        // Tạm thời hiển thị thông báo
-        System.out.println("Mở màn hình danh sách sản phẩm cho User ID: " + userId);
+    private void openMainApp(Long userId, String role) {
+        try {
+            // 1. Repositories
+            ProductRepository prodRepo = new MySQLProductRepository();
+            CartRepository cartRepo = new MySQLCartRepository();
+            OrderRepository orderRepo = new MySQLOrderRepository();
+            CategoryRepository catRepo = new MySQLCategoryRepository(); // Cần cho Admin thêm SP
+
+            // 2. Product List & Search
+            adapters.product.getlist.GetListProductViewModel listVM = new adapters.product.getlist.GetListProductViewModel();
+            adapters.product.getlist.GetListProductPresenter listPres = new adapters.product.getlist.GetListProductPresenter(listVM);
+            cosmetic.usecase.products.getlist.GetListProductUseCase listUC = new cosmetic.usecase.products.getlist.GetListProductUseCase(prodRepo, listPres);
+            adapters.product.getlist.GetListProductController listCtrl = new adapters.product.getlist.GetListProductController(listUC);
+
+            // 3. Add To Cart
+            adapters.cart.add.AddToCartViewModel addVM = new adapters.cart.add.AddToCartViewModel();
+            adapters.cart.add.AddToCartPresenter addPres = new adapters.cart.add.AddToCartPresenter(addVM);
+            cosmetic.usecase.cart.add.AddToCartUseCase addUC = new cosmetic.usecase.cart.add.AddToCartUseCase(cartRepo, prodRepo, addPres);
+            adapters.cart.add.AddToCartController addCtrl = new adapters.cart.add.AddToCartController(addUC);
+
+            // 4. View Cart
+            adapters.cart.view.ViewCartViewModel viewCartVM = new adapters.cart.view.ViewCartViewModel();
+            adapters.cart.view.ViewCartPresenter viewCartPres = new adapters.cart.view.ViewCartPresenter(viewCartVM);
+            cosmetic.usecase.cart.view.ViewCartUseCase viewCartUC = new cosmetic.usecase.cart.view.ViewCartUseCase(cartRepo, viewCartPres);
+            adapters.cart.view.ViewCartController viewCartCtrl = new adapters.cart.view.ViewCartController(viewCartUC);
+
+            // 5. Create Order
+            adapters.order.create.CreateOrderViewModel createOrderVM = new adapters.order.create.CreateOrderViewModel();
+            adapters.order.create.CreateOrderPresenter createOrderPres = new adapters.order.create.CreateOrderPresenter(createOrderVM);
+            cosmetic.usecase.order.create.CreateOrderUseCase createOrderUC = new cosmetic.usecase.order.create.CreateOrderUseCase(orderRepo, cartRepo, prodRepo, createOrderPres);
+            adapters.order.create.CreateOrderController createOrderCtrl = new adapters.order.create.CreateOrderController(createOrderUC);
+            
+            // 6. Order History (Lịch sử đơn hàng)
+            adapters.order.getlist.GetListViewModel historyVM = new adapters.order.getlist.GetListViewModel();
+            adapters.order.getlist.GetListPresenter historyPres = new adapters.order.getlist.GetListPresenter(historyVM);
+            cosmetic.usecase.order.getlist.GetListUseCase historyUC = new cosmetic.usecase.order.getlist.GetListUseCase(orderRepo, historyPres);
+            adapters.order.getlist.GetListController historyCtrl = new adapters.order.getlist.GetListController(historyUC);
+
+            // 7. Admin Create Product (Chỉ khởi tạo nếu là admin hoặc cứ khởi tạo để sẵn)
+            adapters.product.create.CreateProductViewModel createProdVM = new adapters.product.create.CreateProductViewModel();
+            adapters.product.create.CreateProductPresenter createProdPres = new adapters.product.create.CreateProductPresenter(createProdVM);
+            cosmetic.usecase.product.create.CreateProductUseCase createProdUC = new cosmetic.usecase.product.create.CreateProductUseCase(prodRepo, catRepo, createProdPres);
+            adapters.product.create.CreateProductController createProdCtrl = new adapters.product.create.CreateProductController(createProdUC);
+
+            // Đóng gói dependencies vào mảng object để truyền gọn
+            Object[] extraDeps = {
+                createOrderCtrl, createOrderVM, // 0, 1: Order Creation
+                historyCtrl, historyVM,         // 2, 3: Order History
+                createProdCtrl, createProdVM    // 4, 5: Admin Create Product
+            };
+
+            // Mở màn hình chính
+            new GUIProductList(userId, role, listCtrl, listVM, addCtrl, addVM, viewCartCtrl, viewCartVM, extraDeps).setVisible(true);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Lỗi khởi tạo: " + e.getMessage());
+        }
     }
 }

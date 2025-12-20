@@ -1,6 +1,7 @@
 package adapters.user.login;
 
 import adapters.Publisher;
+import desktop.GUILogin;
 
 public class LoginViewModel extends Publisher {
     public boolean isSuccess;
@@ -15,4 +16,9 @@ public class LoginViewModel extends Publisher {
         this.role = role;
         notifySubscribers();
     }
+
+	public void addSubscriber(GUILogin guiLogin) {
+		// TODO Auto-generated method stub
+		
+	}
 }
