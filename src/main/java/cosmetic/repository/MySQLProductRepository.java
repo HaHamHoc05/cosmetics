@@ -1,7 +1,9 @@
 package cosmetic.repository;
 
 import java.sql.Connection;
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,7 +14,6 @@ public class MySQLProductRepository implements ProductRepository {
 
     @Override
     public List<Product> findAll() {
-        // Chỉ lấy sản phẩm đang ACTIVE (kinh doanh)
         String sql = "SELECT * FROM products WHERE status = 'ACTIVE'";
         List<Product> list = new ArrayList<>();
         
@@ -23,7 +24,9 @@ public class MySQLProductRepository implements ProductRepository {
             while (rs.next()) {
                 list.add(mapRowToProduct(rs));
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) { 
+            e.printStackTrace(); 
+        }
         return list;
     }
 
@@ -38,7 +41,9 @@ public class MySQLProductRepository implements ProductRepository {
             if (rs.next()) {
                 return mapRowToProduct(rs);
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) { 
+            e.printStackTrace(); 
+        }
         return null;
     }
 
@@ -50,14 +55,15 @@ public class MySQLProductRepository implements ProductRepository {
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             
-            // Tìm kiếm tương đối (Ví dụ: "%Son%")
             ps.setString(1, "%" + keyword + "%");
             
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 list.add(mapRowToProduct(rs));
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) { 
+            e.printStackTrace(); 
+        }
         return list;
     }
 
@@ -74,7 +80,9 @@ public class MySQLProductRepository implements ProductRepository {
             while (rs.next()) {
                 list.add(mapRowToProduct(rs));
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) { 
+            e.printStackTrace(); 
+        }
         return list;
     }
 
@@ -88,7 +96,9 @@ public class MySQLProductRepository implements ProductRepository {
             ps.setLong(2, productId);
             ps.executeUpdate();
             
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) { 
+            e.printStackTrace(); 
+        }
     }
 
     // Helper: Map dữ liệu từ SQL sang Entity
@@ -99,11 +109,23 @@ public class MySQLProductRepository implements ProductRepository {
         p.setPrice(rs.getDouble("price"));
         p.setQuantity(rs.getInt("quantity"));
         p.setDescription(rs.getString("description"));
-        p.setImageUrl(rs.getString("image_url")); // Nếu Entity có field này
+        p.setImageUrl(rs.getString("image_url"));
         
-        // Map Status (String -> Enum)
+        // SỬA: Bổ sung ánh xạ category_id
+        p.setCategoryId(rs.getLong("category_id"));
+        
+        // Map Status an toàn hơn
         String statusStr = rs.getString("status");
-        if(statusStr != null) p.setStatus(ProductStatus.valueOf(statusStr));
+        if (statusStr != null) {
+            try {
+                p.setStatus(ProductStatus.valueOf(statusStr));
+            } catch (IllegalArgumentException e) {
+                // Nếu DB lưu giá trị lạ, mặc định về ACTIVE hoặc log warning
+                p.setStatus(ProductStatus.ACTIVE); 
+            }
+        } else {
+             p.setStatus(ProductStatus.ACTIVE);
+        }
         
         return p;
     }

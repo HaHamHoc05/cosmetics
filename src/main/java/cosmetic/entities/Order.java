@@ -11,6 +11,7 @@ public class Order {
     private OrderStatus status;
     private String shippingAddress;
     private String phone;
+    private String paymentMethod;
     private LocalDateTime createdAt;
     private List<OrderItem> items = new ArrayList<>();
 
@@ -38,8 +39,47 @@ public class Order {
                 .mapToDouble(item -> item.getPrice() * item.getQuantity())
                 .sum();
     }
+    public static Order createFromCart(Cart cart, User user, String address, String phone, String paymentMethod) {
+        if (cart == null || cart.getItems().isEmpty()) {
+            throw new RuntimeException("Giỏ hàng trống!");
+        }
+        Order order = new Order();
+        order.setUserId(user.getId());
+        order.setShippingAddress(address);
+        order.setPhone(phone);
+        order.setPaymentMethod(paymentMethod);
+        order.setStatus(OrderStatus.PENDING);
+        order.setCreatedAt(LocalDateTime.now());
 
-    // --- GETTERS & SETTERS ---
+        // Chuyển đổi CartItem -> OrderItem
+        List<OrderItem> orderItems = new ArrayList<>();
+        for (CartItem cartItem : cart.getItems()) {
+            OrderItem item = new OrderItem();
+            item.setProductId(cartItem.getProductId());
+            item.setQuantity(cartItem.getQuantity());
+            
+            // Lưu giá tại thời điểm mua (Snapshot price)
+            // Giả sử CartItem có lưu giá, hoặc phải lấy từ Product. 
+            // Ở đây giả định CartItem đã có giá đúng.
+            item.setPrice(cartItem.getPrice()); 
+            
+            // Link ngược lại order
+            // item.setOrderId(...) -> sẽ được set khi lưu vào DB hoặc gán ID sau
+            
+            orderItems.add(item);
+        }
+        order.setItems(orderItems);
+        
+        // Tính tổng tiền ngay lập tức
+        order.calculateTotal();
+        
+        return order;
+    }
+
+		
+	
+
+	// --- GETTERS & SETTERS ---
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public Long getUserId() { return userId; }
@@ -56,4 +96,6 @@ public class Order {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public List<OrderItem> getItems() { return items; }
     public void setItems(List<OrderItem> items) { this.items = items; }
+    public String getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
 }
