@@ -7,14 +7,21 @@ public class User {
     private String fullName;
     private String email;
     private String password;
-    private String phone;    // Mới thêm
-    private String address;  // Mới thêm
-    private int roleId;
+    private String phone;
+    private String address;
+    private Long roleId; // 1: ADMIN, 2: CUSTOMER
     private LocalDateTime createdAt;
 
-    public User() {}
+    public User() {
+        this.createdAt = LocalDateTime.now();
+    }
 
-    // Getters & Setters
+    // --- BUSINESS LOGIC ---
+    public boolean isAdmin() {
+        return this.roleId != null && this.roleId == 1;
+    }
+
+    // --- GETTERS & SETTERS ---
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getFullName() { return fullName; }
@@ -27,8 +34,8 @@ public class User {
     public void setPhone(String phone) { this.phone = phone; }
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
-    public int getRoleId() { return roleId; }
-    public void setRoleId(int roleId) { this.roleId = roleId; }
+    public Long getRoleId() { return roleId; }
+    public void setRoleId(Long i) { this.roleId = i; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

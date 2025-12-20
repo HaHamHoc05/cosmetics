@@ -1,18 +1,17 @@
 package cosmetic.entities;
 
 public class Role {
-    private int id;
-    private String roleName; // 'ADMIN' hoặc 'CUSTOMER'
+	private Long id;
+    private String name;
 
     public Role() {}
-
-    public Role(int id, String roleName) {
+    public Role(Long id, String name) {
         this.id = id;
-        this.roleName = roleName;
+        this.name = name;
     }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
-    public String getRoleName() { return roleName; }
-    public void setRoleName(String roleName) { this.roleName = roleName; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 }
