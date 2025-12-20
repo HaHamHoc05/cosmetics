@@ -4,6 +4,9 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
 import adapters.Subscriber;
 import adapters.cart.add.*;
 import adapters.product.getlist.*;
@@ -21,7 +24,6 @@ public class GUIProductList extends JFrame implements Subscriber {
     private JTextField txtSearch;
     private JButton btnSearch, btnAdd, btnCart, btnHistory, btnAdmin;
 
-    // Dependencies (Giữ nguyên)
     private GetListProductController listCtrl;
     private GetListProductViewModel listVM;
     private AddToCartController addCtrl;
@@ -49,17 +51,18 @@ public class GUIProductList extends JFrame implements Subscriber {
         this.addVM.addSubscriber(this);
 
         setupUI();
+        // Load danh sách sản phẩm ban đầu
         listCtrl.execute("", null);
     }
 
     private void setupUI() {
-        setTitle("Cosmetic Shop - Trang Chủ");
+        setTitle("Cosmetic Shop - Trang Chủ (" + role + ")");
         setSize(1000, 700);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // 1. Header Panel (Màu hồng)
+        // --- Header ---
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(StyleUtils.PRIMARY_COLOR);
         headerPanel.setBorder(new EmptyBorder(15, 20, 15, 20));
@@ -69,24 +72,36 @@ public class GUIProductList extends JFrame implements Subscriber {
         lblBrand.setForeground(Color.WHITE);
         headerPanel.add(lblBrand, BorderLayout.WEST);
 
-        // Panel chứa các nút chức năng bên phải header
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        actionPanel.setOpaque(false); // Trong suốt để thấy nền hồng
+        actionPanel.setOpaque(false);
         
         btnCart = createHeaderButton("Giỏ Hàng");
         btnHistory = createHeaderButton("Lịch Sử");
         actionPanel.add(btnCart);
         actionPanel.add(btnHistory);
 
+        // Hiển thị nút Admin nếu role là ADMIN
         if("ADMIN".equalsIgnoreCase(role)) {
-            btnAdmin = createHeaderButton("Quản Lý SP");
-            btnAdmin.setBackground(Color.ORANGE); // Nổi bật nút Admin
+            btnAdmin = createHeaderButton("Quản Lý Hệ Thống"); // Đổi tên cho hợp lý hơn
+            btnAdmin.setBackground(Color.ORANGE);
+            btnAdmin.setForeground(Color.BLACK);
             actionPanel.add(btnAdmin);
         }
+        
+        JButton btnLogout = createHeaderButton("Đăng Xuất");
+        btnLogout.setBackground(new Color(0,0,0)); 
+        btnLogout.setForeground(Color.BLACK);
+        btnLogout.setBorder(new EmptyBorder(8, 15, 8, 15));
+        btnLogout.addActionListener(e -> {
+            this.dispose();
+            GUILogin.main(null);
+        });
+        actionPanel.add(btnLogout);
+
         headerPanel.add(actionPanel, BorderLayout.EAST);
         add(headerPanel, BorderLayout.NORTH);
 
-        // 2. Center Panel (Search + Table)
+        // --- Center ---
         JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
         centerPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
         centerPanel.setBackground(Color.WHITE);
@@ -96,8 +111,11 @@ public class GUIProductList extends JFrame implements Subscriber {
         searchPanel.setBackground(Color.WHITE);
         txtSearch = new JTextField(20);
         txtSearch.setFont(StyleUtils.FONT_REGULAR);
-        txtSearch.setPreferredSize(new Dimension(200, 30));
+        txtSearch.setPreferredSize(new Dimension(300, 35));
+        
         btnSearch = StyleUtils.createButton("Tìm kiếm");
+        btnSearch.setPreferredSize(new Dimension(100, 35));
+        btnSearch.setBackground(new Color(33, 150, 243));
         searchPanel.add(new JLabel("Tìm sản phẩm: "));
         searchPanel.add(txtSearch);
         searchPanel.add(btnSearch);
@@ -109,10 +127,10 @@ public class GUIProductList extends JFrame implements Subscriber {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
         table = new JTable(model);
-        StyleUtils.styleTable(table); // Áp dụng style đẹp
+        StyleUtils.styleTable(table);
         centerPanel.add(new JScrollPane(table), BorderLayout.CENTER);
 
-        // Nút mua hàng to ở dưới
+        // Bottom Actions
         btnAdd = StyleUtils.createButton("THÊM VÀO GIỎ HÀNG");
         btnAdd.setFont(new Font("Segoe UI", Font.BOLD, 16));
         JPanel bottomPanel = new JPanel();
@@ -123,25 +141,17 @@ public class GUIProductList extends JFrame implements Subscriber {
 
         add(centerPanel, BorderLayout.CENTER);
 
-        // --- Event Listeners ---
+        // --- Events ---
         btnSearch.addActionListener(e -> listCtrl.execute(txtSearch.getText(), null));
+        txtSearch.addActionListener(e -> btnSearch.doClick());
+
+        btnAdd.addActionListener(e -> addToCartAction());
         
-        btnAdd.addActionListener(e -> {
-            int row = table.getSelectedRow();
-            if(row >= 0) {
-                Long pId = (Long) model.getValueAt(row, 0);
-                String q = JOptionPane.showInputDialog(this, "Nhập số lượng muốn mua:", "1");
-                if(q != null) {
-                    try {
-                        AddToCartController.InputDTO dto = new AddToCartController.InputDTO();
-                        dto.userId = userId;
-                        dto.productId = pId;
-                        dto.quantity = Integer.parseInt(q);
-                        addCtrl.execute(dto);
-                    } catch(Exception ex) { JOptionPane.showMessageDialog(this, "Số lượng không hợp lệ!"); }
+        table.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent me) {
+                if (me.getClickCount() == 2) {
+                    addToCartAction();
                 }
-            } else {
-                JOptionPane.showMessageDialog(this, "Vui lòng chọn một sản phẩm!");
             }
         });
 
@@ -150,22 +160,68 @@ public class GUIProductList extends JFrame implements Subscriber {
             new GUICart(userId, viewCartCtrl, viewCartVM, deps).setVisible(true);
         });
 
-        btnHistory.addActionListener(e -> 
-            new GUIOrderHistory(userId, (GetListController)extraDeps[2], (GetListViewModel)extraDeps[3]).setVisible(true)
-        );
+        btnHistory.addActionListener(e -> {
+            try {
+                new GUIOrderHistory(userId, (GetListController)extraDeps[2], (GetListViewModel)extraDeps[3]).setVisible(true);
+            } catch(Exception ex) { JOptionPane.showMessageDialog(this, "Chưa cài đặt màn hình lịch sử"); }
+        });
 
+        // --- CẬP NHẬT ĐOẠN CODE BẠN YÊU CẦU Ở ĐÂY ---
         if(btnAdmin != null) {
-            btnAdmin.addActionListener(e -> 
-                new GUIAdminProduct((CreateProductController)extraDeps[4], (CreateProductViewModel)extraDeps[5]).setVisible(true)
-            );
+            btnAdmin.addActionListener(e -> {
+                if ("ADMIN".equalsIgnoreCase(role)) {
+                    // Mở Dashboard quản trị
+                    new GUIAdminDashboard().setVisible(true);
+                    this.dispose(); // Đóng màn hình hiện tại
+                }
+            });
+        }
+    }
+    
+    private void addToCartAction() {
+        int row = table.getSelectedRow();
+        if(row >= 0) {
+            Long pId = (Long) model.getValueAt(row, 0);
+            
+            Object stockObj = model.getValueAt(row, 3);
+            int stock = 0;
+            if (stockObj != null) {
+                try {
+                    stock = Integer.parseInt(stockObj.toString());
+                } catch (NumberFormatException e) {
+                    stock = 0;
+                }
+            }
+            
+            if (stock <= 0) {
+                JOptionPane.showMessageDialog(this, "Sản phẩm này đã hết hàng!");
+                return;
+            }
+
+            String q = JOptionPane.showInputDialog(this, "Nhập số lượng muốn mua:", "1");
+            if(q != null && !q.trim().isEmpty()) {
+                try {
+                    int quantity = Integer.parseInt(q);
+                    if(quantity <= 0) throw new NumberFormatException();
+                    
+                    AddToCartController.InputDTO dto = new AddToCartController.InputDTO();
+                    dto.userId = userId;
+                    dto.productId = pId;
+                    dto.quantity = quantity;
+                    addCtrl.execute(dto);
+                } catch(NumberFormatException ex) { 
+                    JOptionPane.showMessageDialog(this, "Số lượng không hợp lệ!"); 
+                }
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn một sản phẩm!");
         }
     }
 
-    // Helper tạo nút trên Header nhỏ hơn chút
     private JButton createHeaderButton(String text) {
-        JButton btn = new JButton(text);
-        btn.setFont(StyleUtils.FONT_BOLD);
-        btn.setBackground(Color.WHITE);
+    	JButton btn = StyleUtils.createButton(text);
+    	btn.setFont(StyleUtils.FONT_BOLD);
+    	btn.setBackground(Color.WHITE);
         btn.setForeground(StyleUtils.PRIMARY_COLOR);
         btn.setFocusPainted(false);
         return btn;
@@ -176,18 +232,20 @@ public class GUIProductList extends JFrame implements Subscriber {
         if (listVM.products != null) {
             model.setRowCount(0);
             for (GetListProductRes.ProductDTO p : listVM.products) {
+                Object quantityDisplay = (p.quantity != null) ? p.quantity : 0;
+                
                 model.addRow(new Object[]{
                     p.id, 
                     p.name, 
-                    StyleUtils.formatCurrency(p.price), // Format tiền
-                    p.quantity, 
+                    StyleUtils.formatCurrency(p.price),
+                    quantityDisplay, 
                     p.description
                 });
             }
         }
         if (addVM.message != null && !addVM.message.isEmpty()) {
             JOptionPane.showMessageDialog(this, addVM.message);
-            addVM.message = null;
+            addVM.message = null; 
         }
     }
 }

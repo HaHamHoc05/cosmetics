@@ -35,7 +35,6 @@ public class MySQLCartRepository implements CartRepository {
                         CartItem item = new CartItem();
                         item.setProductId(rsItems.getLong("product_id"));
                         item.setQuantity(rsItems.getInt("quantity"));
-                        // Có thể cần join để lấy tên sản phẩm, giá... ở đây
                         cart.getItems().add(item);
                     }
                 }
@@ -101,11 +100,12 @@ public class MySQLCartRepository implements CartRepository {
         }
         return 0;
     }
+
     @Override
     public List<CartDetailDTO> getCartDetails(int cartId) {
         List<CartDetailDTO> list = new ArrayList<>();
-        // Join bảng cart_items với products để lấy tên và giá
-        String sql = "SELECT p.id, p.name, p.price, p.image, ci.quantity " +
+        // SỬA: Đổi p.image thành p.image_url để khớp với tên cột trong database
+        String sql = "SELECT p.id, p.name, p.price, p.image_url, ci.quantity " +
                      "FROM cart_items ci " +
                      "JOIN products p ON ci.product_id = p.id " +
                      "WHERE ci.cart_id = ?";
@@ -118,11 +118,20 @@ public class MySQLCartRepository implements CartRepository {
                 CartDetailDTO dto = new CartDetailDTO();
                 dto.productId = rs.getLong("id");
                 dto.productName = rs.getString("name");
-                dto.price = rs.getBigDecimal("price"); // Giả sử DB dùng DECIMAL
-                dto.image = rs.getString("image");
+                dto.price = rs.getBigDecimal("price"); 
+                
+                // SỬA: Lấy dữ liệu từ cột image_url
+                dto.image = rs.getString("image_url"); 
+                
                 dto.quantity = rs.getInt("quantity");
-                // Tính thành tiền luôn cho tiện
-                dto.totalPrice = dto.price.multiply(java.math.BigDecimal.valueOf(dto.quantity));
+                
+                // Tính thành tiền: price * quantity
+                if (dto.price != null) {
+                    dto.totalPrice = dto.price.multiply(java.math.BigDecimal.valueOf(dto.quantity));
+                } else {
+                    dto.totalPrice = java.math.BigDecimal.ZERO;
+                }
+                
                 list.add(dto);
             }
         } catch (SQLException e) {

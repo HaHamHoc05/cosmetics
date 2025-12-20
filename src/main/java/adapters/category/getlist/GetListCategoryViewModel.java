@@ -1,7 +1,10 @@
 package adapters.category.getlist;
 
 import adapters.Publisher;
+import adapters.Subscriber;
 import cosmetic.entities.Category;
+import desktop.GUIAdminProduct;
+
 import java.util.List;
 
 public class GetListCategoryViewModel extends Publisher {
@@ -15,4 +18,8 @@ public class GetListCategoryViewModel extends Publisher {
         this.categories = categories;
         notifySubscribers();
     }
+
+	    public void addSubscriber(Subscriber s) { subscribe(s); 
+	    }
+
 }

@@ -24,7 +24,7 @@ public class GetListProductUseCase implements UseCase<GetListProductReq, GetList
         List<Product> entities;
 
         try {
-            // Business Logic: Chọn phương thức lấy dữ liệu
+            // Lấy dữ liệu từ Repo
             if (req.keyword != null && !req.keyword.isEmpty()) {
                 entities = productRepo.searchByName(req.keyword);
             } else if (req.categoryId != null) {
@@ -40,12 +40,18 @@ public class GetListProductUseCase implements UseCase<GetListProductReq, GetList
                 dto.id = p.getId();
                 dto.name = p.getName();
                 dto.price = p.getPrice();
-                dto.imageUrl = p.getImageUrl(); // Cần đảm bảo Entity Product có getter này
+                dto.imageUrl = p.getImageUrl();
+                
+
+                dto.quantity = p.getQuantity();       // Gán số lượng
+                dto.description = p.getDescription(); // Gán mô tả
+                dto.categoryId = p.getCategoryId();
+                
                 res.products.add(dto);
             }
 
             res.success = true;
-            res.message = "Lấy danh sách thành công. Số lượng: " + entities.size();
+            res.message = "Tìm thấy " + entities.size() + " sản phẩm.";
 
         } catch (Exception e) {
             res.success = false;

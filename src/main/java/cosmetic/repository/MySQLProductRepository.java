@@ -187,4 +187,31 @@ public class MySQLProductRepository implements ProductRepository {
             throw new RuntimeException("Lỗi lưu sản phẩm: " + e.getMessage());
         }
     }
+    @Override
+    public void update(Product p) {
+        String sql = "UPDATE products SET name=?, price=?, quantity=?, description=?, image_url=?, category_id=?, status=? WHERE id=?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, p.getName());
+            ps.setDouble(2, p.getPrice());
+            ps.setInt(3, p.getQuantity());
+            ps.setString(4, p.getDescription());
+            ps.setString(5, p.getImageUrl());
+            ps.setLong(6, p.getCategoryId());
+            ps.setString(7, p.getStatus().name());
+            ps.setLong(8, p.getId());
+            ps.executeUpdate();
+        } catch (SQLException e) { e.printStackTrace(); }
+    }
+
+    @Override
+    public void delete(Long id) {
+        // Soft delete (chuyển trạng thái) hoặc Hard delete. Ở đây dùng Hard delete.
+        String sql = "DELETE FROM products WHERE id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, id);
+            ps.executeUpdate();
+        } catch (SQLException e) { e.printStackTrace(); }
+    }
 }

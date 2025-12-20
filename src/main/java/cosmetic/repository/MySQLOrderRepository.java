@@ -150,6 +150,7 @@ public class MySQLOrderRepository implements OrderRepository {
     
     private List<OrderItem> findOrderItems(Long orderId) throws SQLException {
         List<OrderItem> items = new ArrayList<>();
+        // Order items thường đã lưu giá lúc mua nên select * là ổn
         String sql = "SELECT * FROM order_items WHERE order_id = ?";
         
         try (Connection conn = DBConnection.getConnection();
@@ -237,9 +238,15 @@ public class MySQLOrderRepository implements OrderRepository {
         return null;
     }
     
+    // --- SỬA LỖI Ở ĐÂY ---
     private List<CartItem> findCartItems(int cartId) throws SQLException {
         List<CartItem> items = new ArrayList<>();
-        String sql = "SELECT * FROM cart_items WHERE cart_id = ?";
+        // SỬA: Join với bảng products để lấy tên và giá sản phẩm
+        // Giả sử bảng cart_items có cột 'id', nếu không có thì bỏ dòng item.setId(...)
+        String sql = "SELECT ci.*, p.name AS product_name, p.price " +
+                     "FROM cart_items ci " +
+                     "JOIN products p ON ci.product_id = p.id " +
+                     "WHERE ci.cart_id = ?";
         
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -249,12 +256,17 @@ public class MySQLOrderRepository implements OrderRepository {
             
             while (rs.next()) {
                 CartItem item = new CartItem();
-                item.setId(rs.getLong("id"));
+                // Kiểm tra xem bảng cart_items có cột id không, nếu có thì giữ dòng này
+                // item.setId(rs.getLong("id")); 
+                
                 item.setCartId((long) cartId);
                 item.setProductId(rs.getLong("product_id"));
+                
+                // Lấy tên và giá từ bảng products (đã join)
                 item.setProductName(rs.getString("product_name"));
-                item.setQuantity(rs.getInt("quantity"));
                 item.setPrice(rs.getDouble("price"));
+                
+                item.setQuantity(rs.getInt("quantity"));
                 items.add(item);
             }
         }

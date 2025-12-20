@@ -1,357 +1,302 @@
 package desktop;
 
 import javax.swing.*;
-import javax.swing.border.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.math.BigDecimal;
+import java.util.List;
+
 import adapters.Subscriber;
 import adapters.product.create.*;
+import adapters.product.getlist.*;
+import adapters.product.update.*;
+import adapters.product.delete.*;
+// Import Category
 import adapters.category.getlist.*;
 import cosmetic.entities.Category;
-import cosmetic.repository.MySQLCategoryRepository;
+import cosmetic.usecase.category.getlist.GetListCategoryRes;
+import cosmetic.usecase.products.getlist.GetListProductRes;
 
-/**
- * Màn hình quản lý sản phẩm dành cho Admin
- */
-public class GUIAdminProduct extends JFrame implements Subscriber {
-    // UI Components
-    private JTextField txtName;
-    private JTextField txtPrice;
-    private JTextField txtQty;
-    private JTextArea txtDesc;
-    private JTextField txtImage;
-    private JComboBox<CategoryItem> cbCategory;
-    private JButton btnAdd;
-    private JButton btnClear;
-    private JLabel lblStatus;
+public class GUIAdminProduct extends JPanel implements Subscriber {
+    private JTable table;
+    private DefaultTableModel model;
     
-    // Dependencies
-    private final CreateProductController controller;
-    private final CreateProductViewModel viewModel;
+    // Inputs Form
+    private JTextField txtName, txtPrice, txtQty, txtImg;
+    private JTextArea txtDesc;
+    
+    // Thay JTextField ID bằng JComboBox chọn tên danh mục
+    private JComboBox<CategoryItem> cbCategory; 
 
-    // Color scheme
-    private static final Color PRIMARY_COLOR = new Color(220, 53, 69);
-    private static final Color SUCCESS_COLOR = new Color(40, 167, 69);
-    private static final Color BACKGROUND_COLOR = new Color(248, 249, 250);
-    private static final Color WHITE = Color.WHITE;
+    private JButton btnAdd, btnUpdate, btnDelete, btnClear;
 
-    public GUIAdminProduct(CreateProductController controller, CreateProductViewModel viewModel) {
-        this.controller = controller;
-        this.viewModel = viewModel;
-        this.viewModel.addSubscriber(this);
-        
-        initComponents();
+    // Controllers & ViewModels
+    private final CreateProductController createCtrl;
+    private final CreateProductViewModel createVM;
+    private final GetListProductController listCtrl;
+    private final GetListProductViewModel listVM;
+    private final UpdateProductController updateCtrl;
+    private final UpdateProductViewModel updateVM;
+    private final DeleteProductController deleteCtrl;
+    private final DeleteProductViewModel deleteVM;
+    
+    // Controller Category
+    private final GetListCategoryController catListCtrl;
+    private final GetListCategoryViewModel catListVM;
+
+    public GUIAdminProduct(CreateProductController cCtrl, CreateProductViewModel cVM,
+                           GetListProductController lCtrl, GetListProductViewModel lVM,
+                           UpdateProductController uCtrl, UpdateProductViewModel uVM,
+                           DeleteProductController dCtrl, DeleteProductViewModel dVM,
+                           GetListCategoryController catCtrl, GetListCategoryViewModel catVM) {
+        this.createCtrl = cCtrl; this.createVM = cVM;
+        this.listCtrl = lCtrl;   this.listVM = lVM;
+        this.updateCtrl = uCtrl; this.updateVM = uVM;
+        this.deleteCtrl = dCtrl; this.deleteVM = dVM;
+        this.catListCtrl = catCtrl; this.catListVM = catVM;
+
+        // Đăng ký nhận thông báo
+        this.createVM.addSubscriber(this);
+        this.listVM.addSubscriber(this);
+        this.updateVM.addSubscriber(this);
+        this.deleteVM.addSubscriber(this);
+        this.catListVM.addSubscriber(this);
+
         setupUI();
-        loadCategories();
-        addListeners();
+        
+        // Load dữ liệu ban đầu
+        listCtrl.execute("", null);
+        catListCtrl.execute(); // Load danh mục ngay khi mở
     }
 
-    private void initComponents() {
-        txtName = new JTextField(20);
-        txtPrice = new JTextField(10);
-        txtQty = new JTextField(5);
-        txtDesc = new JTextArea(4, 20);
-        txtImage = new JTextField(20);
-        cbCategory = new JComboBox<>();
-        btnAdd = new JButton("✓ Thêm sản phẩm");
-        btnClear = new JButton("✗ Xóa");
-        lblStatus = new JLabel(" ");
-        
-        // Styling
-        Font mainFont = new Font("Segoe UI", Font.PLAIN, 13);
-        
-        txtName.setFont(mainFont);
-        txtPrice.setFont(mainFont);
-        txtQty.setFont(mainFont);
-        txtDesc.setFont(mainFont);
-        txtDesc.setLineWrap(true);
-        txtDesc.setWrapStyleWord(true);
-        txtImage.setFont(mainFont);
-        cbCategory.setFont(mainFont);
-        
-        btnAdd.setBackground(SUCCESS_COLOR);
-        btnAdd.setForeground(WHITE);
-        btnAdd.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btnAdd.setFocusPainted(false);
-        btnAdd.setBorderPainted(false);
-        
-        btnClear.setBackground(new Color(108, 117, 125));
-        btnClear.setForeground(WHITE);
-        btnClear.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        btnClear.setFocusPainted(false);
-        btnClear.setBorderPainted(false);
-        
-        lblStatus.setFont(new Font("Segoe UI", Font.ITALIC, 12));
-        lblStatus.setHorizontalAlignment(SwingConstants.CENTER);
+    // Class phụ để hiển thị tên danh mục trong ComboBox
+    private static class CategoryItem {
+        Long id;
+        String name;
+        public CategoryItem(Long id, String name) { this.id = id; this.name = name; }
+        @Override public String toString() { return name; }
+        @Override public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            CategoryItem that = (CategoryItem) o;
+            return id.equals(that.id);
+        }
     }
 
     private void setupUI() {
-        setTitle("Quản Lý Sản Phẩm - Admin");
-        setSize(500, 600);
-        setLocationRelativeTo(null);
+        setLayout(new BorderLayout(10, 10));
         
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBackground(BACKGROUND_COLOR);
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        // --- LEFT PANEL: Form nhập liệu ---
+        JPanel formPanel = new JPanel();
+        formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
+        formPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        formPanel.setPreferredSize(new Dimension(300, 0));
         
-        // Header
-        JPanel headerPanel = new JPanel();
-        headerPanel.setBackground(BACKGROUND_COLOR);
-        JLabel lblTitle = new JLabel("🛍️ Thêm Sản Phẩm Mới");
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        lblTitle.setForeground(PRIMARY_COLOR);
-        headerPanel.add(lblTitle);
+        addField(formPanel, "Tên SP:", txtName = new JTextField());
+        addField(formPanel, "Giá (VNĐ):", txtPrice = new JTextField());
+        addField(formPanel, "Số lượng:", txtQty = new JTextField());
         
-        // Form
-        JPanel formPanel = createFormPanel();
+        // ComboBox Danh mục
+        formPanel.add(new JLabel("Danh mục:"));
+        cbCategory = new JComboBox<>();
+        formPanel.add(cbCategory);
+        formPanel.add(Box.createVerticalStrut(5));
         
-        // Footer
-        JPanel footerPanel = createFooterPanel();
+        addField(formPanel, "URL Ảnh:", txtImg = new JTextField());
         
-        mainPanel.add(headerPanel, BorderLayout.NORTH);
-        mainPanel.add(formPanel, BorderLayout.CENTER);
-        mainPanel.add(footerPanel, BorderLayout.SOUTH);
-        
-        setContentPane(mainPanel);
-    }
+        formPanel.add(new JLabel("Mô tả:"));
+        txtDesc = new JTextArea(3, 20);
+        txtDesc.setLineWrap(true);
+        formPanel.add(new JScrollPane(txtDesc));
+        formPanel.add(Box.createVerticalStrut(10));
 
-    private JPanel createFormPanel() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new GridBagLayout());
-        panel.setBackground(WHITE);
-        panel.setBorder(BorderFactory.createCompoundBorder(
-            new LineBorder(new Color(222, 226, 230), 1, true),
-            BorderFactory.createEmptyBorder(20, 20, 20, 20)
-        ));
-        
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(8, 8, 8, 8);
-        
-        int row = 0;
-        
-        // Name
-        addFormField(panel, "Tên sản phẩm *:", txtName, row++, gbc);
-        
-        // Price
-        addFormField(panel, "Giá (VNĐ) *:", txtPrice, row++, gbc);
-        
-        // Quantity
-        addFormField(panel, "Số lượng *:", txtQty, row++, gbc);
-        
-        // Category
-        addFormField(panel, "Danh mục *:", cbCategory, row++, gbc);
-        
-        // Image URL
-        addFormField(panel, "Link ảnh:", txtImage, row++, gbc);
-        
-        // Description
-        gbc.gridx = 0; gbc.gridy = row;
-        JLabel lblDesc = new JLabel("Mô tả:");
-        lblDesc.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        panel.add(lblDesc, gbc);
-        
-        gbc.gridx = 1;
-        JScrollPane scrollDesc = new JScrollPane(txtDesc);
-        scrollDesc.setPreferredSize(new Dimension(300, 80));
-        panel.add(scrollDesc, gbc);
-        
-        return panel;
-    }
-
-    private void addFormField(JPanel panel, String labelText, Component field, int row, GridBagConstraints gbc) {
-        gbc.gridx = 0; gbc.gridy = row;
-        gbc.weightx = 0.3;
-        JLabel label = new JLabel(labelText);
-        label.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        panel.add(label, gbc);
-        
-        gbc.gridx = 1;
-        gbc.weightx = 0.7;
-        panel.add(field, gbc);
-    }
-
-    private JPanel createFooterPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(BACKGROUND_COLOR);
-        panel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
-        
-        // Status
-        lblStatus.setForeground(PRIMARY_COLOR);
-        panel.add(lblStatus, BorderLayout.NORTH);
-        
         // Buttons
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        btnPanel.setBackground(BACKGROUND_COLOR);
+        JPanel btnPanel = new JPanel(new GridLayout(2, 2, 5, 5));
+        btnAdd = StyleUtils.createButton("Thêm");
+        btnUpdate = StyleUtils.createButton("Sửa");
+        btnDelete = StyleUtils.createButton("Xóa");
+        btnDelete.setBackground(Color.RED);
+        btnClear = new JButton("Làm mới");
         
-        btnClear.setPreferredSize(new Dimension(100, 40));
-        btnAdd.setPreferredSize(new Dimension(180, 40));
-        
-        btnPanel.add(btnClear);
-        btnPanel.add(btnAdd);
-        
-        panel.add(btnPanel, BorderLayout.CENTER);
-        
-        return panel;
-    }
+        btnPanel.add(btnAdd); btnPanel.add(btnUpdate);
+        btnPanel.add(btnDelete); btnPanel.add(btnClear);
+        formPanel.add(btnPanel);
 
-    private void loadCategories() {
-        try {
-            var catRepo = new MySQLCategoryRepository();
-            var catVM = new GetListCategoryViewModel();
-            var catPres = new GetListCategoryPresenter(catVM);
-            var catUC = new cosmetic.usecase.category.getlist.GetListCategoryUseCase(catRepo, catPres);
-            var catCtrl = new GetListCategoryController(catUC);
-            
-            catVM.subscribe(new Subscriber() {
-                @Override
-                public void update() {
-                    if (catVM.isSuccess && catVM.categories != null) {
-                        cbCategory.removeAllItems();
-                        for (Category cat : catVM.categories) {
-                            cbCategory.addItem(new CategoryItem(cat.getId(), cat.getName()));
+        add(formPanel, BorderLayout.WEST);
+
+        // --- CENTER PANEL: Table ---
+        String[] cols = {"ID", "Tên SP", "Giá", "Kho", "Mô tả"};
+        model = new DefaultTableModel(cols, 0) {
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        };
+        table = new JTable(model);
+        StyleUtils.styleTable(table);
+        add(new JScrollPane(table), BorderLayout.CENTER);
+
+        // --- EVENTS ---
+        
+        // 1. Click Table -> Đổ dữ liệu lên form
+        table.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent me) {
+                int row = table.getSelectedRow();
+                if (row >= 0) {
+                    Long id = (Long) model.getValueAt(row, 0);
+                    
+                    for (GetListProductRes.ProductDTO p : listVM.products) {
+                        if (p.id.equals(id)) {
+                            // Đổ dữ liệu text
+                            txtName.setText(p.name);
+                            txtPrice.setText(String.format("%.0f", p.price));
+                            txtQty.setText(p.quantity != null ? p.quantity.toString() : "0");
+                            txtDesc.setText(p.description != null ? p.description.toString() : "");
+                            txtImg.setText(p.imageUrl);
+                            
+                            // --- LOGIC CHỌN DANH MỤC TỰ ĐỘNG ---
+                            if (p.categoryId != null) {
+                                // Duyệt qua các item trong ComboBox để tìm ID trùng khớp
+                                for (int i = 0; i < cbCategory.getItemCount(); i++) {
+                                    CategoryItem item = cbCategory.getItemAt(i);
+                                    if (item.id.equals(p.categoryId)) {
+                                        cbCategory.setSelectedIndex(i); // Chọn đúng danh mục
+                                        break;
+                                    }
+                                }
+                            }
+                            break;
                         }
                     }
                 }
-            });
+            }
+        });
+
+        // 2. Nút Thêm
+        btnAdd.addActionListener(e -> {
+            try {
+                CreateProductController.InputDTO dto = new CreateProductController.InputDTO();
+                dto.name = txtName.getText();
+                // Sửa lỗi BigDecimal
+                dto.price = new BigDecimal(txtPrice.getText()); 
+                dto.quantity = Integer.parseInt(txtQty.getText());
+                dto.description = txtDesc.getText();
+                dto.image = txtImg.getText(); // Lưu ý tên biến trong controller là 'image' hay 'imageUrl'
+                
+                // Lấy ID từ ComboBox
+                CategoryItem selected = (CategoryItem) cbCategory.getSelectedItem();
+                if (selected != null) {
+                    dto.categoryId = selected.id;
+                } else {
+                    throw new Exception("Vui lòng chọn danh mục!");
+                }
+                
+                createCtrl.execute(dto);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Giá hoặc số lượng phải là số!");
+            } catch (Exception ex) { 
+                JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage()); 
+            }
+        });
+
+        // 3. Nút Sửa
+        btnUpdate.addActionListener(e -> {
+            int row = table.getSelectedRow();
+            if(row < 0) { JOptionPane.showMessageDialog(this, "Chọn SP cần sửa!"); return; }
+            Long id = (Long) model.getValueAt(row, 0);
             
-            catCtrl.execute();
-        } catch (Exception e) {
-            e.printStackTrace();
-            lblStatus.setText("⚠ Không thể tải danh mục");
-            lblStatus.setForeground(PRIMARY_COLOR);
-        }
+            try {
+                UpdateProductController.InputDTO dto = new UpdateProductController.InputDTO();
+                dto.id = id;
+                dto.name = txtName.getText();
+                // Sửa lỗi BigDecimal
+                dto.price = Double.parseDouble(txtPrice.getText());
+                dto.quantity = Integer.parseInt(txtQty.getText());
+                dto.description = txtDesc.getText();
+                dto.imageUrl = txtImg.getText();
+                
+                CategoryItem selected = (CategoryItem) cbCategory.getSelectedItem();
+                if (selected != null) dto.categoryId = selected.id;
+                
+                updateCtrl.execute(dto);
+            } catch (Exception ex) { JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage()); }
+        });
+
+        // 4. Nút Xóa
+        btnDelete.addActionListener(e -> {
+            int row = table.getSelectedRow();
+            if(row < 0) return;
+            Long id = (Long) model.getValueAt(row, 0);
+            if(JOptionPane.showConfirmDialog(this, "Xóa sản phẩm này?") == JOptionPane.YES_OPTION) {
+                deleteCtrl.execute(id);
+            }
+        });
+
+        btnClear.addActionListener(e -> {
+            txtName.setText(""); txtPrice.setText(""); txtQty.setText("");
+            txtDesc.setText(""); txtImg.setText("");
+            if(cbCategory.getItemCount() > 0) cbCategory.setSelectedIndex(0);
+            table.clearSelection();
+        });
     }
 
-    private void addListeners() {
-        btnAdd.addActionListener(e -> handleAdd());
-        btnClear.addActionListener(e -> handleClear());
-    }
-
-    private void handleAdd() {
-        try {
-            // Validate
-            String name = txtName.getText().trim();
-            String priceStr = txtPrice.getText().trim();
-            String qtyStr = txtQty.getText().trim();
-            
-            if (name.isEmpty()) {
-                showError("Vui lòng nhập tên sản phẩm!");
-                txtName.requestFocus();
-                return;
-            }
-            
-            if (priceStr.isEmpty()) {
-                showError("Vui lòng nhập giá!");
-                txtPrice.requestFocus();
-                return;
-            }
-            
-            if (qtyStr.isEmpty()) {
-                showError("Vui lòng nhập số lượng!");
-                txtQty.requestFocus();
-                return;
-            }
-            
-            if (cbCategory.getSelectedItem() == null) {
-                showError("Vui lòng chọn danh mục!");
-                return;
-            }
-            
-            // Parse data
-            BigDecimal price = new BigDecimal(priceStr);
-            int quantity = Integer.parseInt(qtyStr);
-            CategoryItem selected = (CategoryItem) cbCategory.getSelectedItem();
-            
-            if (price.compareTo(BigDecimal.ZERO) <= 0) {
-                showError("Giá phải lớn hơn 0!");
-                return;
-            }
-            
-            if (quantity < 0) {
-                showError("Số lượng không được âm!");
-                return;
-            }
-            
-            // Create DTO
-            CreateProductController.InputDTO input = new CreateProductController.InputDTO();
-            input.name = name;
-            input.price = price;
-            input.quantity = quantity;
-            input.description = txtDesc.getText().trim();
-            input.image = txtImage.getText().trim();
-            input.categoryId = selected.getId();
-            
-            // Disable button
-            btnAdd.setEnabled(false);
-            btnAdd.setText("Đang xử lý...");
-            lblStatus.setText("Đang thêm sản phẩm...");
-            lblStatus.setForeground(new Color(108, 117, 125));
-            
-            // Execute
-            controller.execute(input);
-            
-        } catch (NumberFormatException ex) {
-            showError("Giá hoặc số lượng không hợp lệ!");
-            btnAdd.setEnabled(true);
-            btnAdd.setText("✓ Thêm sản phẩm");
-        }
-    }
-
-    private void handleClear() {
-        txtName.setText("");
-        txtPrice.setText("");
-        txtQty.setText("");
-        txtDesc.setText("");
-        txtImage.setText("");
-        if (cbCategory.getItemCount() > 0) {
-            cbCategory.setSelectedIndex(0);
-        }
-        lblStatus.setText(" ");
-        txtName.requestFocus();
-    }
-
-    private void showError(String message) {
-        lblStatus.setText("⚠ " + message);
-        lblStatus.setForeground(PRIMARY_COLOR);
+    private void addField(JPanel p, String label, JTextField tf) {
+        p.add(new JLabel(label));
+        p.add(tf);
+        p.add(Box.createVerticalStrut(5));
     }
 
     @Override
     public void update() {
-        btnAdd.setEnabled(true);
-        btnAdd.setText("✓ Thêm sản phẩm");
+        // Cập nhật bảng sản phẩm
+        if (listVM.products != null) {
+            model.setRowCount(0);
+            for (GetListProductRes.ProductDTO p : listVM.products) {
+                model.addRow(new Object[]{
+                    p.id, p.name, StyleUtils.formatCurrency(p.price), p.quantity, p.description
+                });
+            }
+        }
         
-        if (viewModel.isSuccess) {
-            lblStatus.setText("✓ Thêm sản phẩm thành công! ID: " + viewModel.productId);
-            lblStatus.setForeground(SUCCESS_COLOR);
+        // Cập nhật ComboBox danh mục
+        if (catListVM.categories != null) {
+            // Lưu lại item đang chọn
+            Object selected = cbCategory.getSelectedItem();
+            cbCategory.removeAllItems();
+            for (Category c : catListVM.categories) {
+                CategoryItem item = new CategoryItem(c.id, c.name);
+                cbCategory.addItem(item);
+            }
+            // Restore selection nếu có
+            if(selected != null) cbCategory.setSelectedItem(selected);
+        }
+
+        // Xử lý thông báo
+        checkMsg(createVM.message, createVM.isSuccess, createVM);
+        checkMsg(updateVM.message, updateVM.isSuccess, updateVM);
+        checkMsg(deleteVM.message, deleteVM.isSuccess, deleteVM);
+    }
+
+    private void checkMsg(String msg, boolean success, Object vm) {
+        if (msg != null && !msg.isEmpty()) {
+            // 1. Hiển thị thông báo
+            JOptionPane.showMessageDialog(this, msg);
             
-            JOptionPane.showMessageDialog(this,
-                "Sản phẩm đã được thêm thành công!\n" +
-                "ID: " + viewModel.productId + "\n" +
-                "Tên: " + txtName.getText(),
-                "Thành công",
-                JOptionPane.INFORMATION_MESSAGE);
-            
-            handleClear();
-        } else {
-            lblStatus.setText("✗ " + viewModel.message);
-            lblStatus.setForeground(PRIMARY_COLOR);
+            // 2. QUAN TRỌNG: Xóa message trong ViewModel NGAY LẬP TỨC
+            // Để lần update sau (do reload list) nó không hiện lại nữa
+            if(vm instanceof CreateProductViewModel) ((CreateProductViewModel)vm).message = null;
+            if(vm instanceof UpdateProductViewModel) ((UpdateProductViewModel)vm).message = null;
+            if(vm instanceof DeleteProductViewModel) ((DeleteProductViewModel)vm).message = null;
+
+            // 3. Sau khi xóa message xong mới được reload list
+            if(success) {
+                listCtrl.execute("", null);
+                clearForm(); // Tiện tay xóa trắng form luôn cho đẹp
+            }
         }
     }
 
-    // Helper class
-    private static class CategoryItem {
-        private Long id;
-        private String name;
-        
-        public CategoryItem(Long id, String name) {
-            this.id = id;
-            this.name = name;
-        }
-        
-        public Long getId() { return id; }
-        
-        @Override
-        public String toString() { return name; }
-    }
+	private void clearForm() {
+		// TODO Auto-generated method stub
+		
+	}
 }

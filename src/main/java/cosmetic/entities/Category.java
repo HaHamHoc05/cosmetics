@@ -1,8 +1,8 @@
 package cosmetic.entities;
 
 public class Category {
-	private Long id;
-    private String name;
+	public Long id;
+    public String name;
 
     public Category() {}
     public Category(Long id, String name) {

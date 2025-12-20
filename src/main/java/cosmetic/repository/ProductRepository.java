@@ -18,4 +18,6 @@ public interface ProductRepository {
     void decreaseStockBatch(List<CartItem> items);
 
 	void save(Product p);
+	void update(Product p);
+	void delete(Long id);
 }

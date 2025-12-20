@@ -1,6 +1,7 @@
 package adapters.user.login;
 
 import adapters.Publisher;
+import adapters.Subscriber;
 import desktop.GUILogin;
 
 public class LoginViewModel extends Publisher {
@@ -17,8 +18,7 @@ public class LoginViewModel extends Publisher {
         notifySubscribers();
     }
 
-	public void addSubscriber(GUILogin guiLogin) {
-		// TODO Auto-generated method stub
-		
-	}
+    public void addSubscriber(Subscriber subscriber) {
+        subscribe(subscriber);
+    }
 }
