@@ -1,6 +1,7 @@
 package adapters.cart.view;
 
 import adapters.Publisher;
+import adapters.Subscriber;
 import cosmetic.usecase.cart.view.CartDetailDTO;
 import java.math.BigDecimal;
 import java.util.List;
@@ -17,5 +18,10 @@ public class ViewCartViewModel extends Publisher {
         this.items = items;
         this.grandTotal = grandTotal;
         notifySubscribers();
+    }
+    
+    // SỬA: Thêm method alias để tương thích với GUI
+    public void addSubscriber(Subscriber subscriber) {
+        subscribe(subscriber);
     }
 }

@@ -15,5 +15,7 @@ public class GetListProductRes extends ResponseData {
         public String name;
         public double price;
         public String imageUrl;
+		public Object quantity;
+		public Object description;
     }
 }

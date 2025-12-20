@@ -12,8 +12,10 @@ public class GetListPresenter implements OutputBoundary<GetListRes> {
 
     @Override
     public void present(GetListRes response) {
-        // Chỉ cần đẩy list DTO sang ViewModel là xong
+        // SỬA: Cập nhật isSuccess
+        viewModel.isSuccess = response.success;
         viewModel.orders = response.orders;
+        viewModel.errorMessage = response.message;
         viewModel.notifySubscribers();
     }
 }

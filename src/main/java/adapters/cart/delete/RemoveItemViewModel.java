@@ -1,6 +1,7 @@
 package adapters.cart.delete;
 
 import adapters.Publisher;
+import adapters.Subscriber;
 
 public class RemoveItemViewModel extends Publisher {
     public boolean isSuccess;
@@ -10,5 +11,8 @@ public class RemoveItemViewModel extends Publisher {
         this.isSuccess = isSuccess;
         this.message = message;
         notifySubscribers();
+    }
+    public void addSubscriber(Subscriber subscriber) {
+        subscribe(subscriber);
     }
 }

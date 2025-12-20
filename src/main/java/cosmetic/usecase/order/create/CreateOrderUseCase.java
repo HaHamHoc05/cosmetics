@@ -5,6 +5,7 @@ import cosmetic.entities.CartItem;
 import cosmetic.entities.Order;
 import cosmetic.entities.Product;
 import cosmetic.entities.User;
+import cosmetic.repository.CartRepository;
 import cosmetic.repository.OrderRepository;
 import cosmetic.repository.ProductRepository;
 import cosmetic.usecase.OutputBoundary;
@@ -18,7 +19,7 @@ public class CreateOrderUseCase implements UseCase<CreateOrderReq, CreateOrderRe
 
     // SỬA: Constructor nhận thêm ProductRepository
     public CreateOrderUseCase(OrderRepository orderRepo, 
-                              ProductRepository productRepo, 
+                              CartRepository cartRepo, ProductRepository productRepo, 
                               OutputBoundary<CreateOrderRes> outputBoundary) {
         this.orderRepo = orderRepo;
         this.productRepo = productRepo;

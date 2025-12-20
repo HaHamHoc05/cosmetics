@@ -1,6 +1,7 @@
 package adapters.cart.add;
 
 import adapters.Publisher;
+import adapters.Subscriber;
 
 public class AddToCartViewModel extends Publisher {
     public boolean isSuccess;
@@ -12,5 +13,8 @@ public class AddToCartViewModel extends Publisher {
         this.message = message;
         this.totalItems = totalItems;
         notifySubscribers();
+    }
+    public void addSubscriber(Subscriber subscriber) {
+        subscribe(subscriber);
     }
 }

@@ -1,7 +1,10 @@
 package adapters.product.getlist;
 
 import adapters.Publisher;
+import adapters.Subscriber;
 import cosmetic.usecase.products.getlist.GetListProductRes;
+import desktop.GUIProductList;
+
 import java.util.List;
 
 public class GetListProductViewModel extends Publisher {
@@ -14,5 +17,9 @@ public class GetListProductViewModel extends Publisher {
         this.message = message;
         this.products = products;
         notifySubscribers();
+    }
+
+    public void addSubscriber(Subscriber subscriber) {
+        subscribe(subscriber);
     }
 }

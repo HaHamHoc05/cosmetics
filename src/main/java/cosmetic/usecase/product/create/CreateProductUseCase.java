@@ -1,6 +1,7 @@
 package cosmetic.usecase.product.create;
 
 import cosmetic.entities.Product;
+import cosmetic.repository.CategoryRepository;
 import cosmetic.repository.ProductRepository;
 import cosmetic.usecase.OutputBoundary;
 import cosmetic.usecase.UseCase;
@@ -10,7 +11,7 @@ public class CreateProductUseCase implements UseCase<CreateProductReq, CreatePro
     private final ProductRepository productRepo;
     private final OutputBoundary<CreateProductRes> outputBoundary;
 
-    public CreateProductUseCase(ProductRepository productRepo, OutputBoundary<CreateProductRes> outputBoundary) {
+    public CreateProductUseCase(ProductRepository productRepo, CategoryRepository catRepo, OutputBoundary<CreateProductRes> outputBoundary) {
         this.productRepo = productRepo;
         this.outputBoundary = outputBoundary;
     }
