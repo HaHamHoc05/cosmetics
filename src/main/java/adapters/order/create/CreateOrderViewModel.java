@@ -1,6 +1,7 @@
 package adapters.order.create;
 
 import adapters.Publisher;
+import desktop.GUICreateOrder;
 
 public class CreateOrderViewModel extends Publisher{
 	// du lieu hien thi ra man hinh
@@ -13,6 +14,11 @@ public class CreateOrderViewModel extends Publisher{
 		this.message = "";
 		this.newOrderId = "";
 		this.isSuccess = false;
+	}
+
+	public void addSubscriber(GUICreateOrder guiCreateOrder) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
