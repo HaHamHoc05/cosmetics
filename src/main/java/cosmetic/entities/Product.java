@@ -1,7 +1,5 @@
 package cosmetic.entities;
 
-import java.time.LocalDateTime;
-
 public class Product {
     private Long id;
     private String name;
@@ -16,14 +14,14 @@ public class Product {
         this.status = ProductStatus.ACTIVE;
     }
 
-    // --- BUSINESS LOGIC ---
+    // --- BUSINESS LOGIC (SỬA: Thêm phần này để UseCase gọi không bị lỗi) ---
     
-    // Kiểm tra xem có đủ hàng để bán không
+    // 1. Kiểm tra xem có đủ hàng để bán không
     public boolean canSell(int amount) {
         return this.status == ProductStatus.ACTIVE && this.quantity >= amount;
     }
 
-    // Trừ kho khi bán hàng
+    // 2. Trừ kho khi bán hàng
     public void decreaseStock(int amount) {
         if (!canSell(amount)) {
             throw new RuntimeException("Sản phẩm " + this.name + " không đủ hàng hoặc đã ngừng kinh doanh.");
