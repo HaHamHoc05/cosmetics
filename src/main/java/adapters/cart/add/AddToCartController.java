@@ -2,11 +2,12 @@ package adapters.cart.add;
 
 import cosmetic.usecase.InputBoundary;
 import cosmetic.usecase.cart.add.AddToCartReq;
+import cosmetic.usecase.cart.add.AddToCartRes; 
 
 public class AddToCartController {
-    private final InputBoundary<AddToCartReq> useCase;
+    private final InputBoundary<AddToCartReq, AddToCartRes> useCase;
 
-    public AddToCartController(InputBoundary<AddToCartReq> useCase) {
+    public AddToCartController(InputBoundary<AddToCartReq, AddToCartRes> useCase) {
         this.useCase = useCase;
     }
 
