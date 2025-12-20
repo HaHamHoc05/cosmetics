@@ -1,5 +1,6 @@
 package cosmetic.usecase.user.register;
 
+import cosmetic.entities.PasswordEncoder;
 import cosmetic.entities.Role;
 import cosmetic.entities.User;
 import cosmetic.repository.UserRepository;
@@ -10,7 +11,6 @@ public class RegisterUseCase implements UseCase<RegisterReq, RegisterRes> {
     
     private final UserRepository userRepo;
     private final OutputBoundary<RegisterRes> outputBoundary;
-    // THÊM: Cần inject PasswordEncoder
     private final PasswordEncoder passwordEncoder;
 
     public RegisterUseCase(UserRepository userRepo, 
@@ -70,8 +70,3 @@ public class RegisterUseCase implements UseCase<RegisterReq, RegisterRes> {
     }
 }
 
-
-interface PasswordEncoder {
-    String encode(String rawPassword);
-    boolean matches(String rawPassword, String encodedPassword);
-}
