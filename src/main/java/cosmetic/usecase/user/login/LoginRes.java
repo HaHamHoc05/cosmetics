@@ -7,5 +7,7 @@ public class LoginRes extends ResponseData {
     public String message;
     public Long userId;
     public String fullName;
-    public int roleId; 
+    
+    public String role;
+    public String username;
 }

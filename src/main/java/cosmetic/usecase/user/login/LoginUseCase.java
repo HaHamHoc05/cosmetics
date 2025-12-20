@@ -1,6 +1,5 @@
 package cosmetic.usecase.user.login;
 
-import cosmetic.entities.PasswordEncoder;
 import cosmetic.entities.User;
 import cosmetic.repository.UserRepository;
 import cosmetic.usecase.OutputBoundary;
@@ -10,9 +9,14 @@ public class LoginUseCase implements UseCase<LoginReq, LoginRes> {
 
     private final UserRepository userRepo;
     private final OutputBoundary<LoginRes> outputBoundary;
+    // THÊM: Cần inject PasswordEncoder qua constructor
+    private final PasswordEncoder passwordEncoder;
 
-    public LoginUseCase(UserRepository userRepo, OutputBoundary<LoginRes> outputBoundary) {
+    public LoginUseCase(UserRepository userRepo, 
+                       PasswordEncoder passwordEncoder,
+                       OutputBoundary<LoginRes> outputBoundary) {
         this.userRepo = userRepo;
+        this.passwordEncoder = passwordEncoder;
         this.outputBoundary = outputBoundary;
     }
 
@@ -22,9 +26,8 @@ public class LoginUseCase implements UseCase<LoginReq, LoginRes> {
         try {
             User user = userRepo.findByUsername(req.username);
             
-            // Validate User & Password
-            // Sử dụng PasswordEncoder.matches(plain, hashed)
-            if (user == null || !new PasswordEncoder().matches(req.password, user.getPassword())) {
+            // SỬA: Sử dụng PasswordEncoder được inject
+            if (user == null || !passwordEncoder.matches(req.password, user.getPassword())) {
                 throw new RuntimeException("Sai tên đăng nhập hoặc mật khẩu.");
             }
 
@@ -39,6 +42,13 @@ public class LoginUseCase implements UseCase<LoginReq, LoginRes> {
             res.message = "Lỗi: " + e.getMessage();
         }
 
-        if (outputBoundary != null) outputBoundary.present(res);
+        if (outputBoundary != null) {
+            outputBoundary.present(res);
+        }
     }
+}
+
+// SỬA: Tạo interface PasswordEncoder riêng trong package usecase
+interface PasswordEncoder {
+    boolean matches(String rawPassword, String encodedPassword);
 }

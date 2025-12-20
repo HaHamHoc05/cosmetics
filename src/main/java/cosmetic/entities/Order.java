@@ -55,37 +55,45 @@ public class Order {
                 .sum();
     }
     
-    // **SỬA: Thêm method updateStatus với business rule**
-    public void updateStatus(OrderStatus newStatus) {
+    // SỬA: Đổi tên method từ updateStatus -> changeStatus để khớp với UseCase
+    public void changeStatus(OrderStatus newStatus) {
         // Business Rule: Không được cập nhật đơn đã hủy
         if (this.status == OrderStatus.CANCELLED) {
             throw new RuntimeException("Không thể cập nhật đơn hàng đã hủy!");
         }
-        
-        // Business Rule: Không được nhảy cóc trạng thái (tùy chọn)
-        // Ví dụ: PENDING -> CONFIRMED -> SHIPPING -> DELIVERED
-        // Bạn có thể thêm logic kiểm tra thứ tự nếu cần
-        
         this.status = newStatus;
+    }
+    
+    // Giữ lại method cũ để tương thích
+    public void updateStatus(OrderStatus newStatus) {
+        changeStatus(newStatus);
     }
     
     // --- GETTERS & SETTERS ---
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+    
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
+    
     public double getTotalAmount() { return totalAmount; }
     public void setTotalAmount(double totalAmount) { this.totalAmount = totalAmount; }
+    
     public OrderStatus getStatus() { return status; }
     public void setStatus(OrderStatus status) { this.status = status; }
+    
     public String getShippingAddress() { return shippingAddress; }
     public void setShippingAddress(String shippingAddress) { this.shippingAddress = shippingAddress; }
+    
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
+    
     public String getPaymentMethod() { return paymentMethod; }
     public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+    
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    
     public List<OrderItem> getItems() { return items; }
     public void setItems(List<OrderItem> items) { this.items = items; }
 }

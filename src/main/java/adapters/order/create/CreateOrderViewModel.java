@@ -1,24 +1,24 @@
 package adapters.order.create;
 
 import adapters.Publisher;
-import desktop.GUICreateOrder;
+import adapters.Subscriber;
 
-public class CreateOrderViewModel extends Publisher{
-	// du lieu hien thi ra man hinh
-	public String message;
-	public String newOrderId;
-	public boolean isSuccess;
-	
-	// reset du lieu cu
-	public void clear() {
-		this.message = "";
-		this.newOrderId = "";
-		this.isSuccess = false;
-	}
-
-	public void addSubscriber(GUICreateOrder guiCreateOrder) {
-		// TODO Auto-generated method stub
-		
-	}
-
+public class CreateOrderViewModel extends Publisher {
+    // Dữ liệu hiển thị ra màn hình
+    public String message;
+    public String newOrderId;
+    public boolean isSuccess;
+    
+    // SỬA: Sửa tên method để khớp với GUI
+    public void addSubscriber(Subscriber subscriber) {
+        // Gọi method cha (Publisher.subscribe)
+        subscribe(subscriber);
+    }
+    
+    // Reset dữ liệu cũ
+    public void clear() {
+        this.message = "";
+        this.newOrderId = "";
+        this.isSuccess = false;
+    }
 }

@@ -21,13 +21,15 @@ public class UpdateStatusUseCase implements UseCase<UpdateStatusReq, UpdateStatu
         UpdateStatusRes res = new UpdateStatusRes();
         try {
             Order order = orderRepo.findById(req.orderId);
-            if (order == null) throw new RuntimeException("Đơn hàng không tìm thấy");
+            if (order == null) {
+                throw new RuntimeException("Đơn hàng không tìm thấy");
+            }
 
-            OrderStatus newStatus = OrderStatus.valueOf(req.newStatus);
-            order.changeStatus(newStatus); // Entity check logic
+            // SỬA: Sử dụng req.status thay vì req.newStatus
+            order.changeStatus(req.status);
 
-            // Gọi hàm đã có trong Interface
-            orderRepo.updateStatus(req.orderId, newStatus);
+            // Gọi hàm updateStatus từ Repository
+            orderRepo.updateStatus(req.orderId, req.status);
 
             res.success = true;
             res.message = "Cập nhật thành công";
@@ -37,6 +39,8 @@ public class UpdateStatusUseCase implements UseCase<UpdateStatusReq, UpdateStatu
             res.message = "Lỗi: " + e.getMessage();
         }
 
-        if (outputBoundary != null) outputBoundary.present(res);
+        if (outputBoundary != null) {
+            outputBoundary.present(res);
+        }
     }
 }

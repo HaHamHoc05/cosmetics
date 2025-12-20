@@ -11,9 +11,21 @@ public class GetListController {
         this.inputBoundary = inputBoundary;
     }
 
-    // Input là userId (Long), nếu null nghĩa là Admin muốn xem tất cả
     public void execute(Long userId) {
         GetListReq req = new GetListReq(userId);
         inputBoundary.execute(req);
+    }
+    
+
+    public void executeForAdmin() {
+        execute(null); // userId = null → Lấy tất cả
+    }
+    
+
+    public void executeForUser(Long userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("User ID không được null khi gọi từ User");
+        }
+        execute(userId);
     }
 }

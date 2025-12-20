@@ -21,11 +21,15 @@ public class GetListUseCase implements UseCase<GetListReq, GetListRes> {
     public void execute(GetListReq req) {
         GetListRes res = new GetListRes();
         try {
-            if (req.userId == null) {
-                throw new IllegalArgumentException("User ID không hợp lệ.");
-            }
+            List<Order> orders;
 
-            List<Order> orders = orderRepo.findAllByUserId(req.userId);
+            if (req.userId == null) {
+                // Admin xem tất cả đơn hàng
+                orders = orderRepo.findAll();
+            } else {
+                // User xem đơn hàng của mình
+                orders = orderRepo.findAllByUserId(req.userId);
+            }
             
             // Mapping Entity -> DTO
             res.orders = new ArrayList<>();
@@ -40,7 +44,7 @@ public class GetListUseCase implements UseCase<GetListReq, GetListRes> {
             }
             
             res.success = true;
-            res.message = "Lấy danh sách thành công.";
+            res.message = "Lấy danh sách thành công. Tổng: " + orders.size() + " đơn hàng.";
             
         } catch (Exception e) {
             res.success = false;
@@ -48,6 +52,8 @@ public class GetListUseCase implements UseCase<GetListReq, GetListRes> {
             e.printStackTrace();
         }
 
-        if (outputBoundary != null) outputBoundary.present(res);
+        if (outputBoundary != null) {
+            outputBoundary.present(res);
+        }
     }
 }

@@ -4,6 +4,7 @@ import java.util.List;
 
 import cosmetic.entities.Cart;
 import cosmetic.entities.Order;
+import cosmetic.entities.OrderStatus;
 import cosmetic.entities.User;
 
 public interface OrderRepository {
@@ -13,4 +14,8 @@ public interface OrderRepository {
     User findUserById(Long userId);
     Cart findCartByUserId(Long userId);
     void deleteCart(Long userId);
+    
+    void updateStatus(Long orderId, OrderStatus newStatus);
+	List<Order> findAll();
+
 }
