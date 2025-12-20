@@ -1,70 +1,35 @@
 package cosmetic.repository;
 
 import java.sql.Connection;
-import java.sql.*;
-
-
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import cosmetic.entities.User;
+import cosmetic.entities.Role;
 
 public class MySQLUserRepository implements UserRepository {
 
     @Override
-    public void save(User user) {
-        String sql = "INSERT INTO users (full_name, email, password, phone, address, role_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            
-            ps.setString(1, user.getFullName());
-            ps.setString(2, user.getEmail());
-            ps.setString(3, user.getPassword()); // Lưu ý: Thực tế cần mã hóa mật khẩu ở UseCase trước khi đưa vào đây
-            ps.setString(4, user.getPhone());
-            ps.setString(5, user.getAddress());
-            ps.setInt(6, user.getRoleId()); // Mặc định 2 (Customer)
-            ps.setTimestamp(7, Timestamp.valueOf(java.time.LocalDateTime.now()));
-            
-            ps.executeUpdate();
-            
-            // Lấy ID tự sinh từ MySQL gán ngược lại vào object
-            ResultSet rs = ps.getGeneratedKeys();
-            if (rs.next()) {
-                user.setId(rs.getLong(1));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Lỗi Database khi lưu User: " + e.getMessage());
-        }
-    }
-
-    @Override
-    public User findByEmail(String email) {
-        String sql = "SELECT * FROM users WHERE email = ?";
+    public User findByUsername(String username) {
+        String sql = "SELECT * FROM users WHERE username = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             
-            ps.setString(1, email);
+            ps.setString(1, username);
             ResultSet rs = ps.executeQuery();
             
             if (rs.next()) {
-                return mapRowToUser(rs);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null; // Không tìm thấy
-    }
-
-    @Override
-    public User findById(Long id) {
-        String sql = "SELECT * FROM users WHERE id = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
-            ps.setLong(1, id);
-            ResultSet rs = ps.executeQuery();
-            
-            if (rs.next()) {
-                return mapRowToUser(rs);
+                User user = new User();
+                user.setId(rs.getLong("id"));
+                user.setUsername(rs.getString("username"));
+                user.setPassword(rs.getString("password"));
+                // Map Role từ String sang Enum (nếu có lỗi mặc định là USER)
+                try {
+                    user.setRole(Role.valueOf(rs.getString("role")));
+                } catch (Exception e) {
+                    user.setRole(Role.USER);
+                }
+                return user;
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -72,17 +37,20 @@ public class MySQLUserRepository implements UserRepository {
         return null;
     }
 
-    // Hàm phụ trợ để map dữ liệu từ ResultSet sang Object User
-    private User mapRowToUser(ResultSet rs) throws SQLException {
-        User user = new User();
-        user.setId(rs.getLong("id"));
-        user.setFullName(rs.getString("full_name"));
-        user.setEmail(rs.getString("email"));
-        user.setPassword(rs.getString("password"));
-        user.setPhone(rs.getString("phone"));
-        user.setAddress(rs.getString("address"));
-        user.setRoleId(rs.getInt("role_id"));
-        // user.setCreatedAt(...) // Nếu entity User có field này
-        return user;
+    @Override
+    public void save(User user) {
+        String sql = "INSERT INTO users (username, password, role) VALUES (?, ?, ?)";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setString(1, user.getUsername());
+            ps.setString(2, user.getPassword());
+            ps.setString(3, user.getRole().name());
+            
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Lỗi khi lưu người dùng: " + e.getMessage());
+        }
     }
 }

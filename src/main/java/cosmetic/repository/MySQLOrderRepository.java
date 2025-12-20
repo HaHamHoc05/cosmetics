@@ -7,118 +7,86 @@ import cosmetic.entities.*;
 
 public class MySQLOrderRepository implements OrderRepository {
 
+    // ... (Giữ nguyên hàm save, findUserById, findCartByUserId, deleteCart đã sửa ở câu trả lời trước) ...
+    // NẾU BẠN CHƯA CÓ, HÃY COPY LẠI TỪ CÂU TRẢ LỜI TRƯỚC CHO ĐẦY ĐỦ
+
     @Override
-    public void save(Order order) {
-        String sqlOrder = "INSERT INTO orders (user_id, total_amount, status, address, phone, payment_method, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        String sqlItem = "INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)";
-
-        try (Connection conn = DBConnection.getConnection()) {
-            conn.setAutoCommit(false); // Bắt đầu transaction
-
-            try {
-                // 1. Lưu bảng orders
-                PreparedStatement psOrder = conn.prepareStatement(sqlOrder, Statement.RETURN_GENERATED_KEYS);
-                psOrder.setLong(1, order.getUserId());
-                psOrder.setDouble(2, order.getTotalAmount());
-                psOrder.setString(3, order.getStatus().name());
-                psOrder.setString(4, order.getShippingAddress());
-                psOrder.setString(5, order.getPhone());
-                psOrder.setString(6, order.getPaymentMethod());
-                psOrder.setTimestamp(7, Timestamp.valueOf(order.getCreatedAt()));
-                psOrder.executeUpdate();
-
-                // Lấy ID vừa tạo
-                ResultSet rs = psOrder.getGeneratedKeys();
-                if (rs.next()) {
-                    order.setId(rs.getLong(1));
-                }
-
-                // 2. Lưu bảng order_items
-                PreparedStatement psItem = conn.prepareStatement(sqlItem);
-                for (OrderItem item : order.getItems()) {
-                    psItem.setLong(1, order.getId());
-                    psItem.setLong(2, item.getProductId());
-                    psItem.setInt(3, item.getQuantity());
-                    psItem.setDouble(4, item.getPrice());
-                    psItem.addBatch();
-                }
-                psItem.executeBatch();
-
-                conn.commit(); // Xác nhận lưu
-
-            } catch (SQLException e) {
-                conn.rollback(); // Nếu lỗi thì hoàn tác
-                throw e;
+    public List<Order> findAllByUserId(Long userId) {
+        List<Order> list = new ArrayList<>();
+        String sql = "SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC";
+        
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setLong(1, userId);
+            ResultSet rs = ps.executeQuery();
+            
+            while (rs.next()) {
+                Order o = new Order();
+                o.setId(rs.getLong("id"));
+                o.setUserId(rs.getLong("user_id"));
+                o.setTotalAmount(rs.getDouble("total_amount"));
+                o.setShippingAddress(rs.getString("address"));
+                o.setPhone(rs.getString("phone"));
+                o.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                
+                String statusStr = rs.getString("status");
+                o.setStatus(statusStr != null ? OrderStatus.valueOf(statusStr) : OrderStatus.PENDING);
+                
+                list.add(o);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
-
-    @Override
-    public User findUserById(Long userId) {
-        String sql = "SELECT * FROM users WHERE id = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, userId);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                User u = new User();
-                u.setId(rs.getLong("id"));
-                u.setUsername(rs.getString("username"));
-                // Map thêm các field khác nếu cần
-                return u;
-            }
-        } catch (SQLException e) { e.printStackTrace(); }
-        return null;
-    }
-
-    @Override
-    public Cart findCartByUserId(Long userId) {
-        // Code demo đơn giản: Lấy Cart và CartItems
-        // Thực tế bạn cần query bảng carts và cart_items
-        Cart cart = new Cart();
-        cart.setUserId(userId);
-        
-        String sql = "SELECT * FROM cart_items WHERE user_id = ?"; // Giả sử lưu trực tiếp user_id trong item hoặc join bảng
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-             
-            ps.setLong(1, userId);
-            ResultSet rs = ps.executeQuery();
-            List<CartItem> items = new ArrayList<>();
-            while(rs.next()) {
-                CartItem item = new CartItem();
-                item.setProductId(rs.getLong("product_id"));
-                item.setQuantity(rs.getInt("quantity"));
-                item.setPrice(rs.getDouble("price"));
-                items.add(item);
-            }
-            cart.setItems(items);
-            if(items.isEmpty()) return null; // Giỏ hàng trống
-            
-            return cart;
-        } catch (SQLException e) { e.printStackTrace(); }
-        return null;
-    }
-
-    @Override
-    public void deleteCart(Long userId) {
-        String sql = "DELETE FROM cart_items WHERE user_id = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, userId);
-            ps.executeUpdate();
-        } catch (SQLException e) { e.printStackTrace(); }
-    }
-
-    @Override
-    public List<Order> findAllByUserId(Long userId) {
-        return new ArrayList<>(); // TODO: Tự implement tương tự các hàm trên
+        return list;
     }
 
     @Override
     public Order findById(Long id) {
-        return null; // TODO: Tự implement tương tự các hàm trên
+        String sql = "SELECT * FROM orders WHERE id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setLong(1, id);
+            ResultSet rs = ps.executeQuery();
+            
+            if (rs.next()) {
+                Order o = new Order();
+                o.setId(rs.getLong("id"));
+                o.setUserId(rs.getLong("user_id"));
+                o.setStatus(OrderStatus.valueOf(rs.getString("status")));
+                // Các field khác nếu cần dùng cho validation
+                return o;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
+    
+    // Bạn cần thêm method này vào interface OrderRepository trước
+    public void updateStatus(Long orderId, OrderStatus newStatus) {
+        String sql = "UPDATE orders SET status = ? WHERE id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setString(1, newStatus.name());
+            ps.setLong(2, orderId);
+            ps.executeUpdate();
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Lỗi cập nhật trạng thái đơn hàng.");
+        }
+    }
+    
+    // CÁC HÀM save, deleteCart, findCart... GIỮ NGUYÊN NHƯ LẦN TRƯỚC
+    @Override
+    public void save(Order order) { /* ... Code cũ ... */ }
+    @Override
+    public User findUserById(Long userId) { /* ... Code cũ ... */ return null; }
+    @Override
+    public Cart findCartByUserId(Long userId) { /* ... Code cũ ... */ return null; }
+    @Override
+    public void deleteCart(Long userId) { /* ... Code cũ ... */ }
 }

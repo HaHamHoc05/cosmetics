@@ -11,7 +11,7 @@ public class Order {
     private OrderStatus status;
     private String shippingAddress;
     private String phone;
-    private String paymentMethod; // SỬA: Thêm trường này
+    private String paymentMethod;
     private LocalDateTime createdAt;
     private List<OrderItem> items = new ArrayList<>();
 
@@ -20,7 +20,7 @@ public class Order {
         this.status = OrderStatus.PENDING;
     }
 
-    // --- FACTORY METHOD: Tạo Order từ Cart (Logic cốt lõi) ---
+    // --- FACTORY METHOD ---
     public static Order createFromCart(Cart cart, User user, String address, String phone, String paymentMethod) {
         if (cart == null || cart.getItems().isEmpty()) {
             throw new RuntimeException("Giỏ hàng trống!");
@@ -34,19 +34,16 @@ public class Order {
         order.setStatus(OrderStatus.PENDING);
         order.setCreatedAt(LocalDateTime.now());
 
-        // Chuyển đổi CartItem -> OrderItem
         List<OrderItem> orderItems = new ArrayList<>();
         for (CartItem cartItem : cart.getItems()) {
             OrderItem item = new OrderItem();
             item.setProductId(cartItem.getProductId());
             item.setQuantity(cartItem.getQuantity());
-            // Giả sử CartItem đã có giá đúng (hoặc lấy từ Product nếu cần)
             item.setPrice(cartItem.getPrice()); 
-            
             orderItems.add(item);
         }
         order.setItems(orderItems);
-        order.calculateTotal(); // Tính tổng tiền
+        order.calculateTotal();
         
         return order;
     }
@@ -56,6 +53,20 @@ public class Order {
         this.totalAmount = items.stream()
                 .mapToDouble(item -> item.getPrice() * item.getQuantity())
                 .sum();
+    }
+    
+    // **SỬA: Thêm method updateStatus với business rule**
+    public void updateStatus(OrderStatus newStatus) {
+        // Business Rule: Không được cập nhật đơn đã hủy
+        if (this.status == OrderStatus.CANCELLED) {
+            throw new RuntimeException("Không thể cập nhật đơn hàng đã hủy!");
+        }
+        
+        // Business Rule: Không được nhảy cóc trạng thái (tùy chọn)
+        // Ví dụ: PENDING -> CONFIRMED -> SHIPPING -> DELIVERED
+        // Bạn có thể thêm logic kiểm tra thứ tự nếu cần
+        
+        this.status = newStatus;
     }
     
     // --- GETTERS & SETTERS ---
