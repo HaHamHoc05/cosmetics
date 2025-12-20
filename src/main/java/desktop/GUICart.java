@@ -20,7 +20,6 @@ public class GUICart extends JFrame implements Subscriber {
     private final ViewCartController viewCtrl;
     private final ViewCartViewModel viewVM;
     
-    // Order dependencies
     private final CreateOrderController orderCtrl;
     private final CreateOrderViewModel orderVM;
 
@@ -33,7 +32,7 @@ public class GUICart extends JFrame implements Subscriber {
 
         this.viewVM.addSubscriber(this);
         setupUI();
-        viewCtrl.execute(userId); // Load cart ngay khi mở
+        viewCtrl.execute(userId); 
     }
 
     private void setupUI() {
@@ -42,13 +41,11 @@ public class GUICart extends JFrame implements Subscriber {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10,10));
 
-        // Center
         String[] cols = {"Mã SP", "Tên SP", "Đơn giá", "Số lượng", "Thành tiền"};
         model = new DefaultTableModel(cols, 0);
         table = new JTable(model);
         add(new JScrollPane(table), BorderLayout.CENTER);
 
-        // Bottom
         JPanel pnlBot = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         lblTotal.setFont(new Font("Arial", Font.BOLD, 14));
         pnlBot.add(lblTotal);
@@ -60,8 +57,7 @@ public class GUICart extends JFrame implements Subscriber {
         
         btnCheckout.addActionListener(e -> {
             if (model.getRowCount() == 0) {
-                JOptionPane.showMessageDialog(this, "Giỏ hàng trống!");
-                return;
+                JOptionPane.showMessageDialog(this, "Giỏ hàng trống!"); return;
             }
             this.dispose();
             new GUICreateOrder(userId, orderCtrl, orderVM).setVisible(true);
@@ -78,10 +74,8 @@ public class GUICart extends JFrame implements Subscriber {
                 }
             }
             lblTotal.setText("Tổng cộng: " + (viewVM.grandTotal != null ? viewVM.grandTotal : 0) + " VND");
-        } else {
-            // Chỉ hiện lỗi nếu không phải là lỗi "giỏ hàng chưa tồn tại" (lần đầu vào)
-            if(!viewVM.message.contains("tìm thấy"))
-                JOptionPane.showMessageDialog(this, "Lỗi: " + viewVM.message);
+        } else if (!viewVM.message.contains("tìm thấy")) {
+            JOptionPane.showMessageDialog(this, "Lỗi: " + viewVM.message);
         }
     }
 }

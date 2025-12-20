@@ -8,7 +8,6 @@ import adapters.order.create.*;
 public class GUICreateOrder extends JFrame implements Subscriber {
     private final Long userId;
     
-    private JTextField txtName = new JTextField(20); // Chỉ để hiển thị nếu cần
     private JTextField txtAddress = new JTextField("123 đường ABC");
     private JTextField txtPhone = new JTextField("0901234567");
     private JComboBox<String> cbPayment = new JComboBox<>(new String[]{"COD", "BANKING"});
@@ -39,12 +38,13 @@ public class GUICreateOrder extends JFrame implements Subscriber {
 
         btnOrder.addActionListener(e -> {
             CreateOrderController.InputDTO input = new CreateOrderController.InputDTO();
+            // LƯU Ý QUAN TRỌNG: Core của bạn yêu cầu userId là String
             input.userId = String.valueOf(userId);
             input.address = txtAddress.getText();
             input.phone = txtPhone.getText();
             input.paymentMethod = (String) cbPayment.getSelectedItem();
             
-            btnOrder.setEnabled(false); // Tránh click đúp
+            btnOrder.setEnabled(false);
             controller.execute(input);
         });
     }
