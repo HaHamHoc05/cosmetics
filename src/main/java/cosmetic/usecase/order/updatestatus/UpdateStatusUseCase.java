@@ -32,7 +32,7 @@ public class UpdateStatusUseCase implements UseCase<UpdateStatusReq, UpdateStatu
 			// goi entity thuc hien nv
 			order.updateStatus(req.status);
 			// lưu
-			orderRepo.save(order);
+			orderRepo.update(order);
 			
 			//tbao thanh cong
 			res.success = true;

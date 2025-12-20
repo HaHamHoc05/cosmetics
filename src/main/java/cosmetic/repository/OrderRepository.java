@@ -14,4 +14,5 @@ public interface OrderRepository {
     Cart findCartByUserId(Long userId);
     void deleteCart(Long userId);
     User findUserById(Long userId);
+	void update(Order order);
 }
