@@ -5,6 +5,7 @@ import java.util.List;
 import cosmetic.entities.Cart;
 import cosmetic.entities.Order;
 import cosmetic.entities.OrderStatus;
+import cosmetic.entities.Product;
 import cosmetic.entities.User;
 
 public interface OrderRepository {
@@ -17,5 +18,6 @@ public interface OrderRepository {
     
     void updateStatus(Long orderId, OrderStatus newStatus);
 	List<Order> findAll();
+	void update(Product product);
 
 }

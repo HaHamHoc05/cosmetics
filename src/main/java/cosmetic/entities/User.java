@@ -47,13 +47,22 @@ public class User {
     public void setAddress(String address) { this.address = address; }
     
     public Long getRoleId() { return roleId; }
-    public void setRoleId(Long roleId) { this.roleId = roleId; }
-    
+    public void setRoleId(Long roleId) { 
+    	this.roleId = roleId;
+    if (roleId != null) {
+        if (roleId == 1L) {
+            this.role = Role.ADMIN;
+        } else {
+            this.role = Role.USER;
+        }
+    }
+}
     public Role getRole() { return role; }
     public void setRole(Role role) { 
-        this.role = role;
-        // Đồng bộ roleId khi set role
-        this.roleId = (role == Role.ADMIN) ? 1L : 2L;
+    	this.role = role;
+        if (role != null) {
+            this.roleId = (role == Role.ADMIN) ? 1L : 2L;
+        }
     }
     
     

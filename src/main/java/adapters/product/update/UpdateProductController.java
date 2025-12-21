@@ -15,7 +15,7 @@ public class UpdateProductController {
         public double price;
         public int quantity;
         public String description;
-        public String imageUrl;
+        public String image;
         public Long categoryId;
     }
 
@@ -26,7 +26,7 @@ public class UpdateProductController {
         req.price = input.price;
         req.quantity = input.quantity;
         req.description = input.description;
-        req.imageUrl = input.imageUrl;
+        req.imageUrl = input.image;
         req.categoryId = input.categoryId;
         useCase.execute(req);
     }

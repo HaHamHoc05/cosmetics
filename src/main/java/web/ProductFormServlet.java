@@ -34,32 +34,37 @@ public class ProductFormServlet extends HttpServlet {
         String name = req.getParameter("name");
         double price = Double.parseDouble(req.getParameter("price"));
         int quantity = Integer.parseInt(req.getParameter("quantity"));
-        String desc = req.getParameter("description");
-        String img = req.getParameter("imageUrl");
+        String description = req.getParameter("description"); // Khai báo biến này
+        String image = req.getParameter("imageUrl"); // Lấy từ input name="imageUrl"
 
         if (idStr == null || idStr.isEmpty()) {
-            // THÊM MỚI - Khởi tạo với 3 tham số theo định nghĩa UseCase của bạn
+            // THÊM MỚI
             CreateProductViewModel vm = new CreateProductViewModel();
             CreateProductUseCase useCase = new CreateProductUseCase(WebAppContext.getProductRepo(), WebAppContext.getCategoryRepo(), new CreateProductPresenter(vm));
             CreateProductController controller = new CreateProductController(useCase);
             
-            // Đóng gói vào InputDTO
             CreateProductController.InputDTO input = new CreateProductController.InputDTO();
             input.name = name;
-            input.description = desc;
-            input.price = BigDecimal.valueOf(price);
+            input.price = java.math.BigDecimal.valueOf(price);
             input.quantity = quantity;
-            input.image = img;
-            input.categoryId = 1L; // Mặc định hoặc lấy từ form
-            
+            input.description = description;
+            input.image = image; // Gán vào field 'image'
             controller.execute(input);
         } else {
-            // CẬP NHẬT (Làm tương tự nếu UpdateProductController cũng dùng InputDTO)
+            // CẬP NHẬT
             Long id = Long.parseLong(idStr);
             UpdateProductViewModel vm = new UpdateProductViewModel();
             UpdateProductUseCase useCase = new UpdateProductUseCase(WebAppContext.getProductRepo(), new UpdateProductPresenter(vm));
-            // Cần kiểm tra xem UpdateProductController của bạn nhận gì để truyền cho đúng
-            // Ví dụ: new UpdateProductController(useCase).execute(id, name, price, quantity, desc, img);
+            UpdateProductController controller = new UpdateProductController(useCase);
+
+            UpdateProductController.InputDTO input = new UpdateProductController.InputDTO();
+            input.id = id;
+            input.name = name;
+            input.price = price;
+            input.quantity = quantity;
+            input.description = description;
+            input.image = image; // Sửa lỗi "image cannot be resolved" tại đây
+            controller.execute(input);
         }
         resp.sendRedirect(req.getContextPath() + "/admin/products");
     }

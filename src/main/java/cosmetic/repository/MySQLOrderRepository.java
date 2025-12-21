@@ -70,16 +70,18 @@ public class MySQLOrderRepository implements OrderRepository {
             while (rs.next()) {
                 Order o = new Order();
                 o.setId(rs.getLong("id"));
-                o.setUserId(rs.getLong("user_id"));
                 o.setTotalAmount(rs.getDouble("total_amount"));
-                o.setShippingAddress(rs.getString("address"));
-                o.setPhone(rs.getString("phone"));
                 o.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                
+                o.setShippingAddress(rs.getString("address"));      
                 o.setPaymentMethod(rs.getString("payment_method")); 
                 
+                User u = new User();
+                u.setFullName(rs.getString("fullName"));
+                o.setUser(u);
+
                 String statusStr = rs.getString("status");
                 o.setStatus(statusStr != null ? OrderStatus.valueOf(statusStr) : OrderStatus.PENDING);
-                
                 list.add(o);
             }
         } catch (SQLException e) {
@@ -281,6 +283,25 @@ public class MySQLOrderRepository implements OrderRepository {
             ps.setLong(1, userId);
             ps.executeUpdate();
             
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    @Override
+    public void update(Product product) {
+        // Phải có 'price = ?' trong câu lệnh SQL
+        String sql = "UPDATE products SET name = ?, price = ?, quantity = ?, description = ?, image_url = ? WHERE id = ?";
+        
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, product.getName());
+            ps.setDouble(2, product.getPrice()); // Lưu giá mới vào DB tại đây
+            ps.setInt(3, product.getQuantity());
+            ps.setString(4, product.getDescription());
+            ps.setString(5, product.getImageUrl());
+            ps.setLong(6, product.getId());
+            
+            ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
