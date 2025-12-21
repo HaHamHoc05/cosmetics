@@ -119,8 +119,8 @@
                                 <c:if test="${sessionScope.role == 'ADMIN'}">
                                     <li><hr class="dropdown-divider"></li>
                                     <li><h6 class="dropdown-header text-danger fw-bold">QUẢN TRỊ</h6></li>
-                                    <li><a class="dropdown-item" href="admin/products">Quản lý Sản phẩm</a></li>
-                                    <li><a class="dropdown-item" href="admin/orders">Quản lý Đơn hàng</a></li>
+									<li><a class="dropdown-item" href="${pageContext.request.contextPath}/admin/products">Quản lý Sản phẩm</a></li>
+									<li><a class="dropdown-item" href="${pageContext.request.contextPath}/admin/orders">Quản lý Đơn hàng</a></li>
                                 </c:if>
                                 
                                 <li><hr class="dropdown-divider"></li>

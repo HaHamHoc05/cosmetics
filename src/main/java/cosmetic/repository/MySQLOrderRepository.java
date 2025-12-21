@@ -90,7 +90,8 @@ public class MySQLOrderRepository implements OrderRepository {
 
     public List<Order> findAll() {
         List<Order> list = new ArrayList<>();
-        String sql = "SELECT * FROM orders ORDER BY created_at DESC";
+
+        String sql = "SELECT o.*, u.fullName FROM orders o INNER JOIN users u ON o.userId = u.id ORDER BY o.createdAt DESC";
         
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {

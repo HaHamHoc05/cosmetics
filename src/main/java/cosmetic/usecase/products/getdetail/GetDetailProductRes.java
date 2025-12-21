@@ -13,4 +13,28 @@ public class GetDetailProductRes extends ResponseData {
     public int quantity; 
     public String description;
     public String imageUrl;
+    
+    public Long getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
 }
