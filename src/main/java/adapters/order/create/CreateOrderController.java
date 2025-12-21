@@ -13,7 +13,7 @@ public class CreateOrderController {
 	}
 	
 	public static class InputDTO {
-		public String userId;
+		public Long userId;
 		public String address;
 		public String phone;
 		public String paymentMethod;
@@ -25,7 +25,7 @@ public class CreateOrderController {
         
         try {
             // Ép kiểu String -> Long cho UserId
-            req.userId = Long.parseLong(inputDTO.userId); 
+        	req.userId = inputDTO.userId;
         } catch (NumberFormatException e) {
             // Xử lý lỗi nếu nhập ID bậy, hoặc để UseCase lo
             req.userId = null; 

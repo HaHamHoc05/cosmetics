@@ -32,5 +32,6 @@ public class RegisterController {
         public String email;
         public String phone;
         public String address;
+		public long roleId;
     }
 }

@@ -39,7 +39,7 @@ public class GUICreateOrder extends JFrame implements Subscriber {
         btnOrder.addActionListener(e -> {
             CreateOrderController.InputDTO input = new CreateOrderController.InputDTO();
             // LƯU Ý QUAN TRỌNG: Core của bạn yêu cầu userId là String
-            input.userId = String.valueOf(userId);
+            input.userId = userId;
             input.address = txtAddress.getText();
             input.phone = txtPhone.getText();
             input.paymentMethod = (String) cbPayment.getSelectedItem();
