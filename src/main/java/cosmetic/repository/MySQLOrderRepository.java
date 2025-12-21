@@ -75,6 +75,7 @@ public class MySQLOrderRepository implements OrderRepository {
                 o.setShippingAddress(rs.getString("address"));
                 o.setPhone(rs.getString("phone"));
                 o.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                o.setPaymentMethod(rs.getString("payment_method")); 
                 
                 String statusStr = rs.getString("status");
                 o.setStatus(statusStr != null ? OrderStatus.valueOf(statusStr) : OrderStatus.PENDING);
@@ -106,7 +107,9 @@ public class MySQLOrderRepository implements OrderRepository {
                 o.setShippingAddress(rs.getString("address"));
                 o.setPhone(rs.getString("phone"));
                 o.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
-                
+                User u = new User();
+                u.setFullName(rs.getString("fullName"));
+                o.setUser(u);
                 String statusStr = rs.getString("status");
                 o.setStatus(statusStr != null ? OrderStatus.valueOf(statusStr) : OrderStatus.PENDING);
                 

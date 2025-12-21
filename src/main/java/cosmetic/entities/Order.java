@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Order {
+	private User user; 
     private Long id;
     private Long userId;
     private double totalAmount;
@@ -96,4 +97,13 @@ public class Order {
     
     public List<OrderItem> getItems() { return items; }
     public void setItems(List<OrderItem> items) { this.items = items; }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+		
 }

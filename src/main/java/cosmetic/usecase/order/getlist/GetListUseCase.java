@@ -39,7 +39,13 @@ public class GetListUseCase implements UseCase<GetListReq, GetListRes> {
                 dto.totalAmount = o.getTotalAmount();
                 dto.status = o.getStatus().name();
                 dto.createdAt = o.getCreatedAt().toString();
-                dto.address = o.getShippingAddress();
+                
+
+                dto.address = o.getShippingAddress(); 
+                
+
+                dto.paymentMethod = o.getPaymentMethod(); 
+                
                 res.orders.add(dto);
             }
             

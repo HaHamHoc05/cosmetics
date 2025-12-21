@@ -7,6 +7,7 @@ public class OrderDTO {
     public String customerName;
     public String createdAt;
     public String address;
+    public String paymentMethod; 
     
     public OrderDTO() {}
     
@@ -17,7 +18,7 @@ public class OrderDTO {
     public String getStatus() {
         return status;
     }
-
+    
     public double getTotalPrice() {
         return totalAmount;
     }
@@ -30,11 +31,14 @@ public class OrderDTO {
         return createdAt;
     }
 
-    public String getAddress() {
+    public String getShippingAddress() {
         return address;
     }
 
     public String getCustomerName() {
         return customerName;
+    }
+    public String getPaymentMethod() {
+        return paymentMethod;
     }
 }
