@@ -118,7 +118,7 @@ public class MySQLCartRepository implements CartRepository {
                 CartDetailDTO dto = new CartDetailDTO();
                 dto.productId = rs.getLong("id");
                 dto.productName = rs.getString("name");
-                dto.price = rs.getBigDecimal("price"); 
+                dto.price = rs.getDouble("price"); 
                 
                 // SỬA: Lấy dữ liệu từ cột image_url
                 dto.image = rs.getString("image_url"); 
@@ -126,11 +126,8 @@ public class MySQLCartRepository implements CartRepository {
                 dto.quantity = rs.getInt("quantity");
                 
                 // Tính thành tiền: price * quantity
-                if (dto.price != null) {
-                    dto.totalPrice = dto.price.multiply(java.math.BigDecimal.valueOf(dto.quantity));
-                } else {
-                    dto.totalPrice = java.math.BigDecimal.ZERO;
-                }
+                dto.totalPrice = dto.price * dto.quantity;
+                
                 
                 list.add(dto);
             }

@@ -37,15 +37,13 @@ public class GetListProductUseCase implements UseCase<GetListProductReq, GetList
             res.products = new ArrayList<>();
             for (Product p : entities) {
                 GetListProductRes.ProductDTO dto = new GetListProductRes.ProductDTO();
-                dto.id = p.getId();
-                dto.name = p.getName();
-                dto.price = p.getPrice();
-                dto.imageUrl = p.getImageUrl();
-                
-
-                dto.quantity = p.getQuantity();       // Gán số lượng
-                dto.description = p.getDescription(); // Gán mô tả
-                dto.categoryId = p.getCategoryId();
+                dto.setId(p.getId());          
+                dto.setName(p.getName());       
+                dto.setPrice(p.getPrice());    
+                dto.setQuantity(p.getQuantity());
+                dto.setImageUrl(p.getImageUrl());
+                dto.setDescription(p.getDescription());
+                dto.setCategoryId(p.getCategoryId());
                 
                 res.products.add(dto);
             }

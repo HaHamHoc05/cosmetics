@@ -86,7 +86,7 @@ public class GUICart extends JFrame implements Subscriber {
                 this.dispose();
             } catch (Exception ex) {
                 ex.printStackTrace(); // In lỗi ra console để debug nếu cần
-                JOptionPane.showMessageDialog(this, "Chưa cài đặt màn hình thanh toán hoặc lỗi khởi tạo: " + ex.getMessage());
+                JOptionPane.showMessageDialog(this, "Lỗi khởi tạo màn hình thanh toán: " + ex.getMessage());
             }
         });
     }
@@ -97,26 +97,28 @@ public class GUICart extends JFrame implements Subscriber {
             model.setRowCount(0);
             if (viewVM.items != null) {
                 for (CartDetailDTO item : viewVM.items) {
-                    // SỬA LỖI: Chuyển BigDecimal sang double bằng .doubleValue()
-                    double price = item.price != null ? item.price.doubleValue() : 0;
-                    double totalItemPrice = item.totalPrice != null ? item.totalPrice.doubleValue() : 0;
+                    // --- SỬA LỖI Ở ĐÂY ---
+                    // 1. Dùng Getter thay vì truy cập trực tiếp biến (vì biến giờ là private)
+                    // 2. Không cần .doubleValue() vì kiểu dữ liệu đã là double
+                    double price = item.getPrice();
+                    double totalItemPrice = item.getTotalPrice();
 
                     model.addRow(new Object[]{
-                        item.productId, 
-                        item.productName, 
+                        item.getProductId(), 
+                        item.getProductName(), 
                         StyleUtils.formatCurrency(price), 
-                        item.quantity, 
+                        item.getQuantity(), 
                         StyleUtils.formatCurrency(totalItemPrice)
                     });
                 }
             }
             
-            // SỬA LỖI: Chuyển BigDecimal grandTotal sang double
-            double grandTotal = viewVM.grandTotal != null ? viewVM.grandTotal.doubleValue() : 0;
+            // grandTotal cũng là Double (hoặc double), xử lý null an toàn
+            double grandTotal = viewVM.grandTotal != null ? viewVM.grandTotal : 0;
             lblTotal.setText("Tổng: " + StyleUtils.formatCurrency(grandTotal));
             
-        } else if (viewVM.message != null && !viewVM.message.contains("tìm thấy")) { 
-            // Bỏ qua thông báo lỗi nếu chỉ là do giỏ hàng trống (thường backend trả về message 'không tìm thấy' khi chưa có cart)
+        } else if (viewVM.message != null && !viewVM.message.isEmpty() && !viewVM.message.contains("tìm thấy")) { 
+            // Bỏ qua thông báo lỗi nếu chỉ là do giỏ hàng trống
             JOptionPane.showMessageDialog(this, "Lỗi tải giỏ hàng: " + viewVM.message);
         }
     }

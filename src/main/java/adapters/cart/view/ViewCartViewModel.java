@@ -10,9 +10,9 @@ public class ViewCartViewModel extends Publisher {
     public boolean isSuccess;
     public String message;
     public List<CartDetailDTO> items;
-    public BigDecimal grandTotal;
+    public Double grandTotal;
 
-    public void setState(boolean isSuccess, String message, List<CartDetailDTO> items, BigDecimal grandTotal) {
+    public void setState(boolean isSuccess, String message, List<CartDetailDTO> items, Double grandTotal) {
         this.isSuccess = isSuccess;
         this.message = message;
         this.items = items;

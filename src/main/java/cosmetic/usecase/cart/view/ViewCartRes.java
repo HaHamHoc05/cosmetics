@@ -8,5 +8,5 @@ public class ViewCartRes extends ResponseData {
     public boolean success;
     public String message;
     public List<CartDetailDTO> items;
-    public BigDecimal grandTotal;
+    public double grandTotal;
 }
