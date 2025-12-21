@@ -10,23 +10,29 @@ import cosmetic.entities.Role;
 
 public class MySQLUserRepository implements UserRepository {
 
-    @Override
-    public User findByUsername(String username) {
-        String sql = "SELECT * FROM users WHERE username = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
-            ps.setString(1, username);
-            ResultSet rs = ps.executeQuery();
-            
-            if (rs.next()) {
-                return mapRowToUser(rs);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+	@Override
+	public User findByUsername(String username) {
+	    String sql = "SELECT * FROM users WHERE username = ?";
+	    try (Connection conn = DBConnection.getConnection();
+	         PreparedStatement ps = conn.prepareStatement(sql)) {
+	        ps.setString(1, username);
+	        ResultSet rs = ps.executeQuery();
+	        if (rs.next()) {
+	            User user = new User();
+	            user.setId(rs.getLong("id"));
+	            user.setUsername(rs.getString("username"));
+	            user.setPassword(rs.getString("password"));
+	            user.setFullName(rs.getString("fullName")); 
+
+	            user.setRoleId(rs.getLong("role_id")); 
+	            
+	            return user;
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return null;
+	}
 
     @Override
     public User findByEmail(String email) {
@@ -106,7 +112,7 @@ public class MySQLUserRepository implements UserRepository {
         user.setUsername(rs.getString("username"));
         user.setPassword(rs.getString("password"));
         user.setEmail(rs.getString("email"));
-        user.setFullName(rs.getString("full_name"));
+        user.setFullName(rs.getString("full_ame"));
         user.setPhone(rs.getString("phone"));
         user.setAddress(rs.getString("address"));
         user.setRoleId(rs.getLong("role_id"));

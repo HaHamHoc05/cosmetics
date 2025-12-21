@@ -56,6 +56,7 @@ public class User {
         this.roleId = (role == Role.ADMIN) ? 1L : 2L;
     }
     
+    
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }
