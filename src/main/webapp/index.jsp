@@ -85,7 +85,7 @@
                                 <small class="text-warning"><i class="fa-solid fa-star"></i> 4.8</small>
                                 <small class="text-muted ms-2">Đã bán ${p.quantity * 3 + 10}</small> </div>
                             <div class="d-flex justify-content-between align-items-center">
-                                <span class="price-tag"><fmt:formatNumber value="${p.price}" type="currency" currencySymbol="đ"/></span>
+								<span class="price-tag"><fmt:formatNumber value="${p.price}" type="number" groupingUsed="true"/>đ</span>
                             </div>
                         </div>
                         <div class="card-footer bg-white border-top-0 p-3 pt-0">

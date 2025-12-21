@@ -39,7 +39,7 @@
                                                 <div class="d-flex align-items-center">
                                                     <div class="ms-3">
                                                         <h6 class="mb-0 text-dark">${item.productName}</h6>
-                                                        <small class="text-muted"><fmt:formatNumber value="${item.price}" type="currency" currencySymbol="đ"/></small>
+                                                        <small class="text-muted"><fmt:formatNumber value="${item.price}" type="number" groupingUsed="true"/>đ</small>
                                                     </div>
                                                 </div>
                                             </td>
@@ -47,7 +47,7 @@
                                                 <input type="number" value="${item.quantity}" class="form-control form-control-sm text-center mx-auto" style="width: 60px;" readonly>
                                             </td>
                                             <td class="text-end fw-bold text-danger">
-                                                <fmt:formatNumber value="${item.totalPrice}" type="currency" currencySymbol="đ"/>
+                                                <fmt:formatNumber value="${item.totalPrice}" type="number" groupingUsed="true"/>đ
                                             </td>
                                             <td class="text-end">
                                                 <form action="cart" method="post" style="display:inline;">
@@ -70,7 +70,7 @@
                     <h5 class="fw-bold mb-4">Cộng giỏ hàng</h5>
                     <div class="d-flex justify-content-between mb-3">
                         <span>Tạm tính:</span>
-                        <span class="fw-bold"><fmt:formatNumber value="${total}" type="currency" currencySymbol="đ"/></span>
+                        <span class="fw-bold"><fmt:formatNumber value="${total}" type="number" groupingUsed="true"/>đ</span>
                     </div>
                     <div class="d-flex justify-content-between mb-4">
                         <span>Phí vận chuyển:</span>

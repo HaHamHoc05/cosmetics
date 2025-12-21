@@ -34,11 +34,9 @@ public class StyleUtils {
 
     // Format tiền tệ VNĐ
     public static String formatCurrency(double amount) {
-        Locale localeVN = new Locale("vi", "VN");
-        NumberFormat currencyVN = NumberFormat.getCurrencyInstance(localeVN);
-        return currencyVN.format(amount);
+        NumberFormat nf = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
+        return nf.format(amount) + "đ";
     }
-
     // Style cho Table đẹp hơn
     public static void styleTable(JTable table) {
         table.setRowHeight(30);
@@ -55,8 +53,9 @@ public class StyleUtils {
         table.setDefaultRenderer(Object.class, centerRenderer);
     }
 
-	public static Object formatCurrency(BigDecimal price) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    public static Object formatCurrency(BigDecimal price) {
+        if (price == null) return "0đ";
+        NumberFormat nf = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
+        return nf.format(price) + "đ";
+    }
 }
