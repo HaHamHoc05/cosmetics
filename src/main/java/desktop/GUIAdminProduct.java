@@ -208,11 +208,10 @@ public class GUIAdminProduct extends JPanel implements Subscriber {
                 UpdateProductController.InputDTO dto = new UpdateProductController.InputDTO();
                 dto.id = id;
                 dto.name = txtName.getText();
-                // Sửa lỗi BigDecimal
                 dto.price = Double.parseDouble(txtPrice.getText());
                 dto.quantity = Integer.parseInt(txtQty.getText());
                 dto.description = txtDesc.getText();
-                dto.imageUrl = txtImg.getText();
+                dto.image = txtImg.getText();
                 
                 CategoryItem selected = (CategoryItem) cbCategory.getSelectedItem();
                 if (selected != null) dto.categoryId = selected.id;
