@@ -288,23 +288,15 @@ public class MySQLOrderRepository implements OrderRepository {
         }
     }
     @Override
-    public void update(Product product) {
-        // Phải có 'price = ?' trong câu lệnh SQL
-        String sql = "UPDATE products SET name = ?, price = ?, quantity = ?, description = ?, image_url = ? WHERE id = ?";
-        
+    public void update(Order order) {
+        // FIX: Hàm cập nhật trạng thái đơn hàng
+        String sql = "UPDATE orders SET status = ? WHERE id = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, product.getName());
-            ps.setDouble(2, product.getPrice()); // Lưu giá mới vào DB tại đây
-            ps.setInt(3, product.getQuantity());
-            ps.setString(4, product.getDescription());
-            ps.setString(5, product.getImageUrl());
-            ps.setLong(6, product.getId());
-            
+            ps.setString(1, order.getStatus().name());
+            ps.setLong(2, order.getId());
             ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        } catch (SQLException e) { e.printStackTrace(); }
     }
     
 }

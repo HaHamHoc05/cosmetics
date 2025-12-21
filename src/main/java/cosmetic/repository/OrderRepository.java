@@ -18,6 +18,6 @@ public interface OrderRepository {
     
     void updateStatus(Long orderId, OrderStatus newStatus);
 	List<Order> findAll();
-	void update(Product product);
+	void update(Order order);
 
 }

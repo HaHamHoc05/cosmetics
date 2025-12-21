@@ -189,8 +189,8 @@ public class MySQLProductRepository implements ProductRepository {
     }
     @Override
     public void update(Product p) {
-        String sql = "UPDATE products SET name=?, price=?, quantity=?, description=?, image_url=?, category_id=?, status=? WHERE id=?";
-        try (Connection conn = DBConnection.getConnection();
+    	String sql = "UPDATE products SET name=?, price=?, quantity=?, description=?, image_url=? WHERE id=?";
+    	try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, p.getName());
             ps.setDouble(2, p.getPrice());
