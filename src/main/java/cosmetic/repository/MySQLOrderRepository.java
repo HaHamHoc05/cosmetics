@@ -91,33 +91,28 @@ public class MySQLOrderRepository implements OrderRepository {
 
     public List<Order> findAll() {
         List<Order> list = new ArrayList<>();
-
-        String sql = "SELECT o.*, u.fullName FROM orders o INNER JOIN users u ON o.userId = u.id ORDER BY o.createdAt DESC";
-        
+        // JOIN để lấy fullName từ bảng users
+        String sql = "SELECT o.*, u.fullName FROM orders o INNER JOIN users u ON o.user_id = u.id ORDER BY o.created_at DESC";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
-            ResultSet rs = ps.executeQuery();
-            
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 Order o = new Order();
                 o.setId(rs.getLong("id"));
-                o.setUserId(rs.getLong("user_id"));
                 o.setTotalAmount(rs.getDouble("total_amount"));
-                o.setShippingAddress(rs.getString("address"));
-                o.setPhone(rs.getString("phone"));
+                o.setShippingAddress(rs.getString("address")); // Đọc từ DB
+                o.setPaymentMethod(rs.getString("payment_method")); // Đọc từ DB
                 o.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                
                 User u = new User();
                 u.setFullName(rs.getString("fullName"));
-                o.setUser(u);
+                o.setUser(u); // Gán user vào order
+
                 String statusStr = rs.getString("status");
                 o.setStatus(statusStr != null ? OrderStatus.valueOf(statusStr) : OrderStatus.PENDING);
-                
                 list.add(o);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        } catch (SQLException e) { e.printStackTrace(); }
         return list;
     }
 

@@ -39,13 +39,12 @@ public class GetListUseCase implements UseCase<GetListReq, GetListRes> {
                 dto.totalAmount = o.getTotalAmount();
                 dto.status = o.getStatus().name();
                 dto.createdAt = o.getCreatedAt().toString();
+                dto.address = o.getShippingAddress(); // Map địa chỉ
+                dto.paymentMethod = o.getPaymentMethod(); // Map phương thức thanh toán
                 
-
-                dto.address = o.getShippingAddress(); 
-                
-
-                dto.paymentMethod = o.getPaymentMethod(); 
-                
+                if (o.getUser() != null) {
+                    dto.customerName = o.getUser().getFullName(); // Lấy tên khách hàng
+                }
                 res.orders.add(dto);
             }
             
